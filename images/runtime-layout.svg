@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="760" viewBox="0 0 1520 760">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+    </marker>
+    <style>
+      .title { font: 700 24px Segoe UI, Arial, sans-serif; fill: #1f2937; }
+      .label { font: 600 18px Segoe UI, Arial, sans-serif; fill: #111827; }
+      .box { fill: #f9fafb; stroke: #374151; stroke-width: 2; rx: 10; ry: 10; }
+      .accent { fill: #eef2ff; stroke: #3730a3; }
+      .sub { fill: #ecfeff; stroke: #0e7490; }
+      .runtime { fill: #fff7ed; stroke: #c2410c; }
+      .external { fill: #ede9fe; stroke: #6d28d9; }
+      .conn { stroke: #374151; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    </style>
+  </defs>
+
+  <text x="40" y="42" class="title">bff-demos Runtime Layout</text>
+
+  <!-- Column 1 -->
+  <rect x="60" y="300" width="220" height="70" class="box accent" />
+  <text x="170" y="343" text-anchor="middle" class="label">bff-demos</text>
+
+  <!-- Column 2 -->
+  <rect x="390" y="230" width="220" height="70" class="box sub" />
+  <text x="500" y="273" text-anchor="middle" class="label">simple.bff</text>
+
+  <rect x="390" y="390" width="220" height="70" class="box sub" />
+  <text x="500" y="433" text-anchor="middle" class="label">oidc.bff</text>
+
+  <!-- Connectors from bff-demos -->
+  <line x1="280" y1="335" x2="390" y2="265" class="conn" />
+  <line x1="280" y1="335" x2="390" y2="425" class="conn" />
+
+  <!-- Connectors to Playwright e2e -->
+  <line x1="610" y1="265" x2="740" y2="345" class="conn" />
+  <line x1="610" y1="425" x2="740" y2="345" class="conn" />
+
+  <!-- Connectors from simple.bff -->
+  <line x1="610" y1="265" x2="740" y2="185" class="conn" />
+  <line x1="610" y1="265" x2="740" y2="265" class="conn" />
+
+  <!-- Connectors from oidc.bff -->
+  <line x1="610" y1="425" x2="740" y2="425" class="conn" />
+  <line x1="610" y1="425" x2="740" y2="505" class="conn" />
+  <line x1="890" y1="536" x2="890" y2="574" class="conn" />
+
+  <!-- Column 3 -->
+  <rect x="740" y="154" width="300" height="62" class="box runtime" />
+  <text x="890" y="191" text-anchor="middle" class="label">Spring Boot app :8080</text>
+
+  <rect x="740" y="234" width="300" height="62" class="box runtime" />
+  <text x="890" y="271" text-anchor="middle" class="label">Angular dev app :4200</text>
+
+  <rect x="740" y="314" width="300" height="62" class="box" style="fill:#fffbeb; stroke:#b45309; stroke-width:2;" />
+  <text x="890" y="351" text-anchor="middle" class="label" style="fill:#92400e;">integration tests + e2e tests</text>
+
+  <rect x="740" y="394" width="300" height="62" class="box runtime" />
+  <text x="890" y="431" text-anchor="middle" class="label">Angular dev app :4201</text>
+
+  <rect x="740" y="474" width="300" height="62" class="box runtime" />
+  <text x="890" y="511" text-anchor="middle" class="label">Spring Boot app :8081</text>
+
+  <rect x="740" y="574" width="300" height="62" class="box external" />
+  <text x="890" y="611" text-anchor="middle" class="label">Okta tenant</text>
+
+  <!-- Column 4 grouping box: spans Spring Boot :8080 to Spring Boot :8081 -->
+  <rect x="1110" y="154" width="80" height="382" class="box" style="fill:#f0fdf4; stroke:#15803d; stroke-width:2; stroke-dasharray:8,4;" />
+  <text x="1150" y="345" text-anchor="middle" dominant-baseline="middle"
+        transform="rotate(-90, 1150, 345)"
+        style="font: 600 18px Segoe UI, Arial, sans-serif; fill: #15803d;">
+    Swagger UI via WebJars at app origin
+  </text>
+
+  <!-- Arrows from Spring Boot apps to Swagger UI box -->
+  <line x1="1040" y1="185" x2="1110" y2="185" class="conn" />
+  <line x1="1040" y1="505" x2="1110" y2="505" class="conn" />
+
+  <!-- Dotted separator line: runtime vs maven artifact -->
+  <line x1="1200" y1="145" x2="1200" y2="540" stroke="#6b7280" stroke-width="2" stroke-dasharray="6,4" fill="none" />
+  <text x="1200" y="133" text-anchor="middle" style="font: 600 13px Segoe UI, Arial, sans-serif; fill: #6b7280;">maven</text>
+
+  <!-- swagger-ui-bff artifact box -->
+  <rect x="1210" y="154" width="250" height="382" class="box sub" />
+  <text x="1335" y="179" text-anchor="middle" style="font: 600 13px Segoe UI, Arial, sans-serif; fill: #0e7490;">io.github.teq-niq:</text>
+  <text x="1335" y="197" text-anchor="middle" style="font: 600 13px Segoe UI, Arial, sans-serif; fill: #0e7490;">swagger-ui-bff</text>
+
+  <!-- sub-box: swagger-ui coordinates -->
+  <rect x="1230" y="243" width="210" height="70" class="box accent" />
+  <text x="1335" y="283" text-anchor="middle" style="font: 600 14px Segoe UI, Arial, sans-serif; fill: #3730a3;">swagger-ui</text>
+
+  <text x="1335" y="348" text-anchor="middle" style="font: 700 20px Segoe UI, Arial, sans-serif; fill: #0e7490;">+</text>
+
+  <!-- sub-box: bff-extension-files -->
+  <rect x="1230" y="373" width="210" height="70" class="box accent" />
+  <text x="1335" y="413" text-anchor="middle" style="font: 600 14px Segoe UI, Arial, sans-serif; fill: #3730a3;">bff-extension-files</text>
+</svg>

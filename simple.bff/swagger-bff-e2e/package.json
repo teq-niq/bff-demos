@@ -1,0 +1,15 @@
+{
+  "name": "swagger-bff-e2e",
+  "version": "1.0.0",
+  "description": "E2E Playwright tests for Swagger UI BFF extension (spring.simple.bff)",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "codegen": "playwright codegen http://localhost:8080/swagger-ui/index.html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0"
+  }
+}

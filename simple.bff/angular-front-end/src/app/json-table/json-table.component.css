@@ -1,0 +1,19 @@
+.json-table {
+  border-collapse: collapse;
+  width: auto;
+  margin: 5px 0;
+}
+
+.json-table td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  vertical-align: top;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.key-cell {
+  background: #f7f7f7;
+  font-weight: bold;
+  white-space: nowrap;
+}
