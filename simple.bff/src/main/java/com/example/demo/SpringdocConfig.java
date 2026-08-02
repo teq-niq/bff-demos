@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
 public class SpringdocConfig {
+	private static final Logger log = LoggerFactory.getLogger(SpringdocConfig.class);
 	
 	@Bean
 	public OpenApiCustomizer myCustomiser() {
@@ -37,7 +40,7 @@ public class SpringdocConfig {
 				if(key.startsWith("/secured/")) {
 					
 					PathItem pathItem = entry.getValue();
-					System.out.println("Processing path: " +  key);
+					log.debug("Processing path: {}", key);
 					Map<HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
 					Set<Entry<HttpMethod, Operation>> operationEntrySet = operationsMap.entrySet();
 					for (Entry<HttpMethod, Operation> operationEntry : operationEntrySet) {

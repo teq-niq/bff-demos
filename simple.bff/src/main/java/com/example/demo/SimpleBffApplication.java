@@ -23,11 +23,15 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpSession;
 
 @SpringBootApplication
 @RestController
 public class SimpleBffApplication {
+	private static final Logger log = LoggerFactory.getLogger(SimpleBffApplication.class);
 	
 	
 	
@@ -102,7 +106,7 @@ public class SimpleBffApplication {
 			 if(authentication!=null)
 			 {
 				 User principal = (User) authentication.getPrincipal();
-				 System.out.println("principal class: " + (principal!=null? principal.getClass().getName():null));
+				 log.debug("principal class: {}", (principal!=null? principal.getClass().getName():null));
 				 if(principal!=null)
 				 {
 					 profile.put("loggedIn", true);
@@ -117,7 +121,7 @@ public class SimpleBffApplication {
 			
 						 for (int i = 0; i < authoritiesList.size(); i++) {
 							 GrantedAuthority grantedAuthority = authoritiesList.get(i);
-							 System.out.println("grantedAuthority: " + grantedAuthority.getClass().getName());
+							 log.debug("grantedAuthority: {}", grantedAuthority.getClass().getName());
 			
 							 String authorityName = grantedAuthority.getAuthority();
 							 if(authorityName.startsWith("ROLE_"))
@@ -145,7 +149,7 @@ public class SimpleBffApplication {
 			 {
 				 profile.put("loggedIn", false);
 			 }
-			 System.out.println("returning Profile: " + profile);
+			 log.debug("returning Profile: {}", profile);
 			 return profile;
 	       
 	    }

@@ -19,8 +19,12 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 public class SpringdocConfig {
+	private static final Logger log = LoggerFactory.getLogger(SpringdocConfig.class);
 	
 	@Bean
 	public OpenApiCustomizer myCustomiser() {
@@ -37,7 +41,7 @@ public class SpringdocConfig {
 				if(key.startsWith("/secured/")) {
 					
 					PathItem pathItem = entry.getValue();
-					System.out.println("Processing path: " +  key);
+					log.debug("Processing path: {}", key);
 					Map<HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
 					Set<Entry<HttpMethod, Operation>> operationEntrySet = operationsMap.entrySet();
 					for (Entry<HttpMethod, Operation> operationEntry : operationEntrySet) {
