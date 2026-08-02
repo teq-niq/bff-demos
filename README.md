@@ -146,12 +146,14 @@ The Angular sources are in `simple.bff/angular-front-end`.
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
 ```bash
-simple.bff/angularshell.sh 
+cd simple.bff
+angularshell.sh 
 ```
 or 
 
 ```cmd
-simple.bff/angularshell.bat 
+cd simple.bff
+angularshell.bat 
 ```
 
 <img src="images/simple_angular_shell.png" alt="Angular dev shell" width="400" />
