@@ -350,5 +350,9 @@ It may be included in a future version.
 
 The [troubleshooting notes](notes/troubleshooting.md) capture issues encountered and their resolutions, and may be updated as needed.
 
+## About the Demo Code
+
+The novelty here is the [Swagger UI BFF extension](https://github.com/teq-niq/swagger-ui-bff). The two demo apps — one with Spring Security form login, one with Okta OIDC — are there to show it working in realistic scenarios. The server-side code is context for the extension.
+
 
 
