@@ -29,9 +29,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+	private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
 	@Value("${febaseurl:#{null}}")
     private String feBaseUrl; // (null if not set)
 	
@@ -70,7 +75,7 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-   System.out.println("feBaseUrl=["+feBaseUrl+"]"); 	
+   log.debug("feBaseUrl=[{}]", feBaseUrl);
  
    boolean feBaseUrlIsNotNull = feBaseUrl!=null;;
 
@@ -78,7 +83,7 @@ public class SecurityConfiguration {
 			
 			
 			if(feBaseUrlIsNotNull) {
-				System.out.println("CORS enabled for febaseurl: "+feBaseUrl);
+				log.debug("CORS enabled for febaseurl: {}", feBaseUrl);
 			}
 			
 			Customizer<CorsConfigurer<HttpSecurity>> corsCustomizer=new Customizer<CorsConfigurer<HttpSecurity>>() {
@@ -90,7 +95,7 @@ public class SecurityConfiguration {
 						CorsConfiguration cors=new org.springframework.web.cors.CorsConfiguration();
 							if(feBaseUrlIsNotNull) {
 								cors.addAllowedOrigin(feBaseUrl);
-								System.out.println("added feBaseUrl to CORS:"+feBaseUrl+" for request URL:"+request.getRequestURL());
+								log.debug("added feBaseUrl to CORS:{} for request URL:{}", feBaseUrl, request.getRequestURL());
 							}
 							
 							
@@ -111,11 +116,11 @@ public class SecurityConfiguration {
 				    		.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 				    		.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()) 
 				    	  );
-			System.out.println("CSRF protection is enabled");
+			log.debug("CSRF protection is enabled");
 		}
 		else
 		{
-			System.out.println("The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
+			log.debug("The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
 			
 			
 http=http
