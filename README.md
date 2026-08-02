@@ -329,5 +329,9 @@ Might later enhance the oidc.bff E2E tests to also handle first time login in th
 - Swagger UI is always opened from the application origin for each demo.
 - If you rebuild the workspace, the generated `target` copies will refresh automatically.
 
+## Troubleshooting
+
+The [troubleshooting notes](notes/troubleshooting.md) capture issues encountered and their resolutions, and may be updated as needed.
+
 
 
