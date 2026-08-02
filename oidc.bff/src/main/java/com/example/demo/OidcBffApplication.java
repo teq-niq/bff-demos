@@ -26,6 +26,8 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,6 +41,8 @@ import jakarta.servlet.http.HttpSession;
 @SpringBootApplication
 @RestController
 public class OidcBffApplication {
+
+	private static final Logger log = LoggerFactory.getLogger(OidcBffApplication.class);
 	
 	@Value("${okta.oauth2.issuer:#{null}}")
     private String issuer; // (null if not set)
@@ -102,12 +106,11 @@ public class OidcBffApplication {
 			   if (idToken != null) 
 			   {
 				   idTokenValue=idToken.getTokenValue();
-				   System.out.println("idToken1="+idTokenValue);
-		             System.out.println("oidcUser1="+oidcUser.hashCode());
-			        	if (idToken.getExpiresAt().isBefore(Instant.now())) {
-			        		
-			        	
-			        		System.out.println("ID Token already expired at: " + idToken.getExpiresAt());
+			   log.debug("oidcUser hashCode: {}", oidcUser.hashCode());
+		        	if (idToken.getExpiresAt().isBefore(Instant.now())) {
+		        	
+		        	
+		        		log.debug("ID token expired at: {}", idToken.getExpiresAt());
 			        		// Normally, Spring Security refreshes expired ID tokens automatically,
 			        		// so oidcUser.getIdToken() should not be expired.
 			        		// But if refresh tokens are disabled or unavailable, ID token may expire.
@@ -167,10 +170,8 @@ public class OidcBffApplication {
 	                    "?id_token_hint=" + URLEncoder.encode(idTokenValue, StandardCharsets.UTF_8) +
 	                    "&post_logout_redirect_uri="+URLEncoder.encode(baseUrl, StandardCharsets.UTF_8);//"http://localhost:9080";
 	    		//sendRequest(redirectUrl);
-		    	System.out.println("base url="+baseUrl);
-		    	System.out.println("Redirecting to Okta logout URL: " + redirectUrl);
+		    	log.debug("logout base url: {}", baseUrl);
 		    	response.sendRedirect(redirectUrl);
-		    	System.out.println("Redirected to Okta logout URL: " + redirectUrl);
 		    	
 		    	
 		    }
@@ -251,9 +252,7 @@ public class OidcBffApplication {
 		             }
 		             
 		             OidcIdToken idToken = oidcUser.getIdToken();
-		             System.out.println("idToken="+idToken.getTokenValue());
-		             System.out.println("oidcUser="+oidcUser.hashCode());
-		            
+	             log.debug("oidcUser hashCode: {}", oidcUser.hashCode());
 		             
 		        	 
 				 }
@@ -269,7 +268,7 @@ public class OidcBffApplication {
 		 {
 			 profile.put("loggedIn", false);
 		 }
-		 System.out.println("returning Profile: " + profile);
+		 log.debug("returning profile: {}", profile);
 		 return profile;
         
      }
