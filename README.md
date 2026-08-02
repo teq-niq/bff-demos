@@ -190,6 +190,10 @@ From the `bff-demos` root:
 ```bash
 mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET]
 ```
+
+In case when setting up OKTA you had chosen and finished the automated setup steps you may find a convenient credentials.txt with all sorts of useful information and commands to reduce above typing.  
+
+
 ### Swagger UI flow
 
 Open Swagger UI from the app origin:
@@ -275,12 +279,14 @@ mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oa
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
 ```bash
-oidc.bff/angularshell.sh 
+cd oidc.bff
+angularshell.sh 
 ```
 OR
 
 ```cmd
-oidc.bff/angularshell.bat 
+cd oidc.bff
+angularshell.bat 
 ```
 
 <img src="images/oidc_angular_shell.png" alt="Angular dev shell" width="400" />
