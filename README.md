@@ -164,7 +164,7 @@ Then run:
 npm start
 ```
 
-If you are launching Angular manually without Maven using an IDE , make sure `serverenv.json` is present in `src/assets`. Maven copies it automatically when the backend is started with the `berun` profile.
+If you are launching Angular manually without Maven as shown above using an IDE , make sure `serverenv.json` is present in `src/assets`. Maven copies it automatically when the backend is started with the `berun` profile.
 
 
 ### Angular flow in dev mode
