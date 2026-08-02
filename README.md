@@ -337,6 +337,15 @@ Might later enhance the oidc.bff E2E tests to also handle first time login in th
 - Swagger UI is always opened from the application origin for each demo.
 - If you rebuild the workspace, the generated `target` copies will refresh automatically.
 
+
+# What’s Not Currently Included
+
+- Session-Token Synchronization: 
+This demo does not currently coordinate HTTP session timeouts with access token or refresh token lifetimes.  
+Implementing this correctly depends on the specific requirements and constraints of each application, so it would need to be handled flexibly and thoughtfully.  
+It may be included in a future version.  
+- Spring Boot 4 migration: A manual Spring Security OIDC configuration could enable Spring Boot 4 today, but this would replace the Okta starter with custom code. We have deferred this until official Okta support is available. 
+
 ## Troubleshooting
 
 The [troubleshooting notes](notes/troubleshooting.md) capture issues encountered and their resolutions, and may be updated as needed.
