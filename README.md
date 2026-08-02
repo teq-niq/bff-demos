@@ -117,7 +117,7 @@ From here please logout and the press close button to return to the Swagger UI h
 ```text
 http://localhost:8080/
 ```
-Note: you may need to first sign out in case you did not sign out from the Swagger UI flow.  The Angular app uses the same session as the Swagger UI flow.
+Note: you may need to first sign out in case you did not sign out from the Swagger UI flow.  The Angular app uses the same session as the Swagger UI flow. In case you didn't do that expect to see already logged on which is not an issue.  Just that the documented screens below will be different.  
 
 <img src="images/angular_simple_landing.png" alt="Angular landing" width="400" />
 
