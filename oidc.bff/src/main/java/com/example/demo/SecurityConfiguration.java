@@ -39,9 +39,14 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+	private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
 	@Value("${febaseurl:#{null}}")
     private String feBaseUrl; // (null if not set)
 	
@@ -89,7 +94,7 @@ public class SecurityConfiguration {
 	
 	@Bean
 	public SecurityFilterChain security(HttpSecurity http) throws Exception {
-		System.out.println("feBaseUrl=["+feBaseUrl+"]"); 	
+		log.debug("feBaseUrl=[{}]", feBaseUrl);
 	 
 	   boolean feBaseUrlIsNotNull = feBaseUrl!=null;
 	  
@@ -97,7 +102,7 @@ public class SecurityConfiguration {
 					
 					
 			if(feBaseUrlIsNotNull) {
-				System.out.println("CORS enabled for febaseurl: "+feBaseUrl);
+				log.debug("CORS enabled for febaseurl: {}", feBaseUrl);
 			}
 			
 			
@@ -110,7 +115,7 @@ public class SecurityConfiguration {
 						CorsConfiguration cors=new CorsConfiguration();
 						if(feBaseUrlIsNotNull) {
 							cors.addAllowedOrigin(feBaseUrl);
-							System.out.println("added feBaseUrl to CORS:"+feBaseUrl+" for request URL:"+request.getRequestURL());
+						log.debug("added feBaseUrl to CORS:{} for request URL:{}", feBaseUrl, request.getRequestURL());
 						}
 						
 							
@@ -131,11 +136,11 @@ public class SecurityConfiguration {
 				    		.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 				    		.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()) 
 				    	  );
-			System.out.println("CSRF protection is enabled");
+			log.debug("CSRF protection is enabled");
 		}
 		else
 		{
-			System.out.println("The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
+			log.debug("The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
 			http=http
 				    .csrf(csrf -> 
 				    		csrf
@@ -211,7 +216,7 @@ public class SecurityConfiguration {
 	        	String source = (String) session.getAttribute("source");
 	    		if(source!=null )
 	    		{
-	    			System.out.println("sourceon fail from session="+source);
+	    			log.debug("source on fail from session={}", source);
 	    			
 	    			if(source.equals("swagger"))
 	    			{
@@ -244,7 +249,7 @@ public class SecurityConfiguration {
 	    	
 	    	boolean toFrontEnd=false;
 	    	HttpSession session = request.getSession();
-	    	System.out.println("session is not null"+(session!=null));
+	    	log.debug("session is not null: {}", session != null);
 	    	if(session!=null)
 	    	{
 	    		
@@ -258,13 +263,13 @@ public class SecurityConfiguration {
 	    			{
 	    				cn=attribute.getClass().getName();
 	    			}
-	    			System.out.println("Session Attribute: " + attributeName + " = " + attribute+" @"+cn);
+				log.debug("Session Attribute: {} @{}", attributeName, cn);
 	    		}
 	    		
 	    		String source = (String) session.getAttribute("source");
 	    		if(source!=null )
 	    		{
-	    			System.out.println("source from session="+source);
+	    			log.debug("source from session={}", source);
 	    			if(source.equals("swagger"))
 	    			{
 	    				toSwagger=true;
@@ -282,7 +287,7 @@ public class SecurityConfiguration {
 	    	while(parameterNames.hasMoreElements()) {
 	    		String paramName = parameterNames.nextElement();
 	    		String[] paramValues = request.getParameterValues(paramName);
-	    		System.out.println("Request Parameter: " + paramName + " = " + Arrays.toString(paramValues));
+			log.debug("Request Parameter: {}", paramName);
 	    	}
 	    	String state= request.getParameter("state");
 	    	if(state!=null)
@@ -290,7 +295,7 @@ public class SecurityConfiguration {
 	    		Decoder urlDecoder = Base64.getUrlDecoder();
 	    		byte[] decoded = urlDecoder.decode(state);
 	    		
-	    		System.out.println("Decoded state: "+new String(decoded));
+	    		log.debug("Decoded state: {}", new String(decoded));
 	    	}
 	      
 	       
