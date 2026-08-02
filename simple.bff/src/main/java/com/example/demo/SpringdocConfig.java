@@ -79,6 +79,7 @@ public class SpringdocConfig {
 			
 			bffScheme.setExtensions(extensions);
 		}
+		// Hardcoded intentionally: demonstrates that all webjar config flows through these OpenAPI extensions; @Value abstraction would hide the mechanism without improving it.
 		extensions.put("profilecheck", "http://localhost:8080/shortprofile");
 		extensions.put("login", "http://localhost:8080/login");
 		extensions.put("redirectforlogin", false);
