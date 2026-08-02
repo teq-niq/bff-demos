@@ -1,0 +1,129 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>eg</groupId>
+    <artifactId>bff-demos</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>simple.bff</artifactId>
+  <name>spring.simple.bff</name>
+	<description>spring.simple.bff</description>
+  <dependencies>
+	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+	
+  </dependencies>
+	<build>
+	
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			
+		 
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>e2e</id>
+			<properties>
+				<swagger.e2e.url>http://localhost:8080</swagger.e2e.url>
+				<test.user.username>user</test.user.username>
+				<test.user.password>password</test.user.password>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<febaseurl>${febaseurl}</febaseurl>
+								
+							</systemPropertyVariables>
+						</configuration>
+						<executions>
+							<execution>
+								<id>spring-boot-start</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>start</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>spring-boot-stop</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.15.4</version>
+						<configuration>
+							<nodeVersion>${nodeVersion}</nodeVersion>
+							<installDirectory>${nodeInstallDir}</installDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and npm - playwright</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>install-node-and-npm</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>npm install - swagger-bff-e2e</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<workingDirectory>${project.basedir}/swagger-bff-e2e</workingDirectory>
+									<arguments>install</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>playwright install chromium</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>npx</goal>
+								</goals>
+								<configuration>
+									<workingDirectory>${project.basedir}/swagger-bff-e2e</workingDirectory>
+									<arguments>playwright install chromium</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>playwright test</id>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>npx</goal>
+								</goals>
+								<configuration>
+									<workingDirectory>${project.basedir}/swagger-bff-e2e</workingDirectory>
+									<arguments>playwright test --headed</arguments>
+									<environmentVariables>
+										<SWAGGER_UI_URL>${swagger.e2e.url}</SWAGGER_UI_URL>
+										<TEST_USER_USERNAME>${test.user.username}</TEST_USER_USERNAME>
+										<TEST_USER_PASSWORD>${test.user.password}</TEST_USER_PASSWORD>
+									</environmentVariables>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

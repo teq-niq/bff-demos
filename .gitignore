@@ -1,0 +1,6 @@
+/node/
+.project
+.classpath
+target/
+.settings/
+/credentials.txt

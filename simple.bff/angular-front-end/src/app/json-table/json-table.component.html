@@ -1,0 +1,39 @@
+<table class="json-table">
+  @if (isObject(data)) {
+    @for (key of objectKeys(data); track key) {
+      <tr>
+        <td class="key-cell">{{ key }}</td>
+        <td class="value-cell">
+
+          @if (isObject(data[key])) {
+            <json-table [data]="data[key]"></json-table>
+          }
+          @else if (isArray(data[key])) {
+            <json-table [data]="data[key]"></json-table>
+          }
+          @else {
+            <span>{{ data[key] }}</span>
+          }
+
+        </td>
+      </tr>
+    }
+  }
+  @else if (isArray(data)) {
+    @for (item of data; track $index) {
+      <tr>
+        <td class="key-cell"></td>
+        <td class="value-cell">
+
+          @if (isObject(item) || isArray(item)) {
+            <json-table [data]="item"></json-table>
+          }
+          @else {
+            <span>{{ item }}</span>
+          }
+
+        </td>
+      </tr>
+    }
+  }
+</table>

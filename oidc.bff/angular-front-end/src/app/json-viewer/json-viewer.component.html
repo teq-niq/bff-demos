@@ -1,0 +1,46 @@
+<div class="tabs-container">
+
+  <!-- TAB HEADERS -->
+  <div class="tabs">
+
+    <div class="tab" 
+         [class.active]="activeTab() === 'table'"
+         (click)="select('table')">
+      Table
+    </div>
+
+    <div class="tab" 
+         [class.active]="activeTab() === 'pretty'"
+         (click)="select('pretty')">
+      Pretty JSON
+    </div>
+
+    <div class="tab" 
+         [class.active]="activeTab() === 'source'"
+         (click)="select('source')">
+      Raw JSON
+    </div>
+
+
+
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div class="tab-content">
+
+    @if (activeTab() === 'table') {
+      <json-table [data]="data"></json-table>
+    }
+
+    @if (activeTab() === 'pretty') {
+      <pre class="pretty-json">{{ prettyJson() }}</pre>
+    }
+
+    @if (activeTab() === 'source') {
+      <textarea class="source-box" readonly>{{ rawJson() }}</textarea>
+    }
+
+
+
+  </div>
+</div>
