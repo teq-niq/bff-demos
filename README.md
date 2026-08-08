@@ -278,7 +278,7 @@ The Angular sources are in `oidc.bff/angular-front-end`.
 If you need to work on angular in dev mode you should indicate that to the back end.
 Stop the server and restart it.
 
-mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] **-Dfebaseurl=http://localhost:4201**
+mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] <mark>**-Dfebaseurl=http://localhost:4201**</mark>
 
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
