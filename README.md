@@ -141,7 +141,7 @@ Do please explore the simple app.
 If you need to work on angular in dev mode you should indicate that to the back end.  
 Stop the server and restart it.  
 
-mvn -pl simple.bff spring-boot:run -P berun **-Dfebaseurl=http://localhost:4200**  
+mvn -pl simple.bff spring-boot:run -P berun <mark>**-Dfebaseurl=http://localhost:4200**</mark>  
 
 Its important you pass the highlighted System property because of the way this demo app has been coded.  
 
