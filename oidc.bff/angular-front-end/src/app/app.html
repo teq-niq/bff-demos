@@ -61,6 +61,12 @@
     color: var(--gray-700);
   }
 
+  .auth-flow-message {
+    margin-top: 0.75rem;
+    color: #b91c1c;
+    font-weight: 600;
+  }
+
   main {
     width: 100%;
     min-height: 100%;
@@ -236,6 +242,9 @@
 	  } @else {
 		        <button  (click)="logout()" class="btn btn-secondary">Sign Out</button>
 				}
+    @if (authFlowMessage()) {
+    <p class="auth-flow-message">{{ authFlowMessage() }}</p>
+    }
       <p>Congratulations! Your app is running. 🎉</p>
 	  <div>
 	  			  	  <button (click)="invokeShortProfile()" class="btn btn-primary">Invoke /shortprofile</button>
@@ -251,7 +260,7 @@
 					<input
 					  type="checkbox"
 					  [checked]="showInaccessible()"
-					  (change)="showInaccessible.set($event.target.checked)"
+            (change)="onShowInaccessibleChange($event)"
 					/>
 
 					<label>Show Inaccessible</label>

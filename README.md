@@ -22,6 +22,8 @@ For the BFF pattern to work, the apps must not be pure SPAs — the Angular fron
 
 ![BFF vs Standard SPA](images/bff-vs-pkce.svg)
 
+(I took AIs help to create this diagram.)   
+
 What is new here is how the pieces are consumed. Instead of building the React-based Swagger UI BFF extension from source, this project consumes it as a Maven dependency via WebJars. Swagger UI with the BFF extension is served by the application itself at the app origin, with no separate origin.
 
 The focus here is:
@@ -139,7 +141,9 @@ Do please explore the simple app.
 If you need to work on angular in dev mode you should indicate that to the back end.  
 Stop the server and restart it.  
 
-mvn -pl simple.bff spring-boot:run -P berun -Dfebaseurl=http://localhost:4200
+mvn -pl simple.bff spring-boot:run -P berun <mark>**-Dfebaseurl=http://localhost:4200**</mark>  
+
+Its important you pass the highlighted System property because of the way this demo app has been coded.  
 
 The Angular sources are in `simple.bff/angular-front-end`.
 
@@ -274,7 +278,7 @@ The Angular sources are in `oidc.bff/angular-front-end`.
 If you need to work on angular in dev mode you should indicate that to the back end.
 Stop the server and restart it.
 
-mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] -Dfebaseurl=http://localhost:4201
+mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] <mark>**-Dfebaseurl=http://localhost:4201**</mark>
 
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
@@ -336,6 +340,28 @@ Might later enhance the oidc.bff E2E tests to also handle first time login in th
 - The Maven `berun` profile is what copies `serverenv.json` and sets up the runtime paths for the front-end.
 - Swagger UI is always opened from the application origin for each demo.
 - If you rebuild the workspace, the generated `target` copies will refresh automatically.
+
+
+### Reachability endpoint and redirect UX hardening
+
+We introduced a `reachability` endpoint mainly for the OIDC redirect flow in login/logout paths.
+The key driver was user experience: when the backend or IdP path is unavailable during a redirect-style login/logout action, the browser can otherwise land on a blank or failed page (for example, connection refused).
+
+To handle this more gracefully, Swagger UI can do a pre-check and stay on the current page with a friendly message instead of sending the browser into a failing redirect.
+
+This behavior is intentionally configurable through Springdoc extension registration:
+
+- If `reachability` is registered in the BFF scheme extensions, the pre-check logic is active.
+- If `reachability` is not registered, existing behavior is preserved (no pre-check).
+
+Scope and current usage:
+
+- Primary value is for OIDC redirect-driven login/logout flows.
+- It is used in Swagger UI for the OIDC demo.
+- The same concept is also used in the Angular app of `oidc.bff` for login/logout redirect handling.
+- It is not currently implemented in the Angular app of `simple.bff` because value-add is relatively low for the simple flow, but it can be added if needed.  
+- It is available in Swagger UI and through it also for simple.bff but its value add there is very little so is turned off and can be enabled if needed.  
+
 
 
 # What’s Not Currently Included

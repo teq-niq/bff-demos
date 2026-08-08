@@ -23,6 +23,7 @@ export class App {
 	protected readonly roles = signal<string[]>([]);
 	
 	protected readonly scopes = signal<string[]>([]);
+	protected readonly authFlowMessage = signal('');
 	
 	
 	protected readonly userResult = signal('');  // Holds result/error
@@ -79,9 +80,34 @@ export class App {
 				});
 	}
 
+	private checkReachabilityAndRun(action: () => void, unavailableMessage: string) {
+		this.authFlowMessage.set('');
+		this.http.get('/reachability').subscribe({
+			next: (res: any) => {
+				if (res?.reachabilitySummary === true) {
+					action();
+					return;
+				}
+				this.authFlowMessage.set(unavailableMessage);
+			},
+			error: () => {
+				this.authFlowMessage.set(unavailableMessage);
+			}
+		});
+	}
+
+	onShowInaccessibleChange(event: Event) {
+		const input = event.target as HTMLInputElement | null;
+		this.showInaccessible.set(input?.checked ?? false);
+	}
+
 	signIn() {
-		//window.location.href = 'http://localhost:9080/oauth2/authorization/okta';
-		window.location.href = MySingleton.getInstance().resolveUrl( '/oauth2/authorization/okta?source=frontend');
+		this.checkReachabilityAndRun(
+			() => {
+				window.location.href = MySingleton.getInstance().resolveUrl('/oauth2/authorization/okta?source=frontend');
+			},
+			'Login is temporarily unavailable. Please try again shortly'
+		);
 	}
 	
 	logout() {
@@ -98,7 +124,12 @@ export class App {
 	
 	
 	apiSignOutGet() {
-	  window.location.href = MySingleton.getInstance().resolveUrl( '/apilogout?source=frontend');
+		this.checkReachabilityAndRun(
+			() => {
+				window.location.href = MySingleton.getInstance().resolveUrl('/apilogout?source=frontend');
+			},
+			'Logout is temporarily unavailable. Please try again shortly'
+		);
 	}
 
 	invokeShortProfile() {

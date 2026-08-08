@@ -81,6 +81,8 @@ public class SpringdocConfig {
 		}
 		// Hardcoded intentionally: demonstrates that all webjar config flows through these OpenAPI extensions; @Value abstraction would hide the mechanism without improving it.
 		extensions.put("profilecheck", "http://localhost:8080/shortprofile");
+		//not much value add using this reachability in simple.bff but its available and can be used if needed.
+		//extensions.put("reachability", "http://localhost:8080/reachability");
 		extensions.put("login", "http://localhost:8080/login");
 		extensions.put("redirectforlogin", false);
 		extensions.put("logout", "http://localhost:8080/apilogout?source=swagger");
