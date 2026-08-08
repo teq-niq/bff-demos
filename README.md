@@ -22,6 +22,8 @@ For the BFF pattern to work, the apps must not be pure SPAs — the Angular fron
 
 ![BFF vs Standard SPA](images/bff-vs-pkce.svg)
 
+(I took AIs help to create this diagram.)   
+
 What is new here is how the pieces are consumed. Instead of building the React-based Swagger UI BFF extension from source, this project consumes it as a Maven dependency via WebJars. Swagger UI with the BFF extension is served by the application itself at the app origin, with no separate origin.
 
 The focus here is:
@@ -139,7 +141,9 @@ Do please explore the simple app.
 If you need to work on angular in dev mode you should indicate that to the back end.  
 Stop the server and restart it.  
 
-mvn -pl simple.bff spring-boot:run -P berun -Dfebaseurl=http://localhost:4200
+mvn -pl simple.bff spring-boot:run -P berun **-Dfebaseurl=http://localhost:4200**  
+
+Its important you pass the highlighted System property because of the way this demo app has been coded.  
 
 The Angular sources are in `simple.bff/angular-front-end`.
 
