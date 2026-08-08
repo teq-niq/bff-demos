@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,11 @@ import org.springframework.test.web.servlet.MockMvc;
  * <p>/apilogout is different: it accepts ANY authenticated principal, not just
  * an OidcUser. The OIDC-specific branch (building the Okta end-session redirect
  * with id_token_hint) fires only when oidcUser != null. @WithMockUser produces
- * a non-OidcUser principal, so oidcUser is always null in these tests — the
- * endpoint clears the context and returns 200 without redirecting. That is
- * intentionally the behaviour being tested here: the endpoint must not crash
- * or reject callers who do not carry an OidcUser.
+ * a non-OidcUser principal, so oidcUser is always null in these tests.
+ *
+ * <p>With the current fallback behavior, the endpoint clears local state and
+ * redirects to a landing page instead of attempting IdP logout. That fallback
+ * redirect behavior is what these tests cover.
  *
  * <p><strong>What is NOT tested here (covered later in real integration tests):</strong><br>
  * The redirect branch — where a genuine OidcUser with a live ID token triggers
@@ -45,42 +47,47 @@ public class ApiLogoutEndpointTest {
     private MockMvc mockMvc;
 
     @Test
-    void testApiLogout_Unauthenticated_Returns200() throws Exception {
+    void apiLogout_UnauthenticatedFallback_RedirectsToDefaultLanding() throws Exception {
         mockMvc.perform(get("/apilogout"))
-                .andExpect(status().isOk());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost"));
     }
 
     // @WithMockUser used intentionally — see class-level Javadoc.
     @Test
     @WithMockUser(username = "user", roles = {"myuser"})
-    void testApiLogout_AsUser_Returns200() throws Exception {
+    void apiLogout_WithMockUserFallback_RedirectsToDefaultLanding() throws Exception {
         mockMvc.perform(get("/apilogout"))
-                .andExpect(status().isOk());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost"));
     }
 
     // @WithMockUser used intentionally — see class-level Javadoc.
     @Test
     @WithMockUser(username = "admin", roles = {"myadmin"})
-    void testApiLogout_AsAdmin_Returns200() throws Exception {
+    void apiLogout_WithMockAdminFallback_RedirectsToDefaultLanding() throws Exception {
         mockMvc.perform(get("/apilogout"))
-                .andExpect(status().isOk());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost"));
     }
 
     // @WithMockUser used intentionally — see class-level Javadoc.
     @Test
     @WithMockUser(username = "user", roles = {"myuser"})
-    void testApiLogout_WithSourceParameter_Returns200() throws Exception {
+    void apiLogout_WithFrontendSourceAndMockUserFallback_RedirectsToFrontendLanding() throws Exception {
         mockMvc.perform(get("/apilogout")
                 .param("source", "frontend"))
-                .andExpect(status().isOk());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost/"));
     }
 
     // @WithMockUser used intentionally — see class-level Javadoc.
     @Test
     @WithMockUser(username = "admin", roles = {"myadmin"})
-    void testApiLogout_WithSwaggerSource_Returns200() throws Exception {
+    void apiLogout_WithSwaggerSourceAndMockAdminFallback_RedirectsToSwaggerLanding() throws Exception {
         mockMvc.perform(get("/apilogout")
                 .param("source", "swagger"))
-                .andExpect(status().isOk());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost/swagger-ui/index.html"));
     }
 }

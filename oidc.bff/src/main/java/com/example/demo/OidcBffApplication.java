@@ -1,8 +1,13 @@
 package com.example.demo;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +54,9 @@ public class OidcBffApplication {
 	
 	@Value("${febaseurl:#{null}}")
     private String feBaseUrl; // (null if not set)
+
+	@Value("${app.idp.reachability-url:#{null}}")
+    private String idpReachabilityUrl; // optional explicit override
 	
 	@PostConstruct
 	private void init()
@@ -93,6 +101,65 @@ public class OidcBffApplication {
 	
 	 
 	 
+	 // Dual purpose: if this endpoint responds, BFF is reachable; payload confirms IdP reachability from BFF.
+	 @GetMapping("/reachability")
+	 public Map<String, Boolean> reachability() {
+		 log.debug("/reachability invoked");
+		 Map<String, Boolean> result = new HashMap<>();
+		 result.put("idpReachableByBff", false);
+		 result.put("reachabilitySummary", false);
+
+		 String targetUrl = resolveIdpReachabilityTarget();
+		 log.debug("IdP reachability target URL resolved to: {}", targetUrl);
+		 if (targetUrl == null || targetUrl.isBlank()) {
+			 log.debug("IdP reachability target URL is blank; returning idpReachableByBff=false");
+			 return result;
+		 }
+
+		 try {
+			 HttpClient client = HttpClient.newBuilder()
+					 .connectTimeout(Duration.ofSeconds(2))
+					 .followRedirects(HttpClient.Redirect.NORMAL)
+					 .build();
+
+			 HttpRequest request = HttpRequest.newBuilder()
+					 .uri(URI.create(targetUrl))
+					 .timeout(Duration.ofSeconds(2))
+					 .GET()
+					 .build();
+
+			 HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+			 boolean idpReachable = response.statusCode() >= 200 && response.statusCode() < 300;
+			 result.put("idpReachableByBff", idpReachable);
+			 result.put("reachabilitySummary", idpReachable);
+			 log.debug("IdP reachability probe status={} reachable={}", response.statusCode(), result.get("idpReachableByBff"));
+		 } catch (Exception ex) {
+			 log.warn("IdP reachability probe failed for URL [{}]: {}", targetUrl, ex.toString());
+		 }
+
+		 return result;
+	 }
+
+	 private String resolveIdpReachabilityTarget() {
+		 if (idpReachabilityUrl != null && !idpReachabilityUrl.isBlank()) {
+			 log.debug("Using configured app.idp.reachability-url");
+			 return idpReachabilityUrl.trim();
+		 }
+
+		 if (issuer == null || issuer.isBlank()) {
+			 return null;
+		 }
+
+		 String normalizedIssuer = issuer.endsWith("/")
+				 ? issuer.substring(0, issuer.length() - 1)
+				 : issuer;
+		 log.debug("Using issuer-derived well-known endpoint for reachability");
+		 return normalizedIssuer + "/.well-known/openid-configuration";
+	 }
+	
+	
+	
+	
 	 @GetMapping("/apilogout")
 	 public void apiLogout(HttpServletRequest request, HttpServletResponse response, @AuthenticationPrincipal  OidcUser oidcUser) throws IOException {
 		 String source = request.getParameter("source");
@@ -136,7 +203,18 @@ public class OidcBffApplication {
 		    }
 		    
 		    
-		    if(idTokenValue!=null)
+		    //if idTokenValue is null it also implies that oidcUser is null which possibly means that 
+		    // server was down for some reason and came up and now user is trying to logout from the application.
+		    //which is why we are not able to get the idTokenValue from the non existent oidcUser object.
+		    // In that case we will redirect to the base url of the application.
+		    // its better to redirect to the base url of the application rather than redirecting to the idp logout url with null idTokenValue.
+		    // the only issue is that the user will not be logged out from the idp but will be logged out from the application.
+		    // this is a trade off we have to make because we cannot get the idTokenValue from the oidcUser object if it is null.
+		    // if a user were to subsequently log in again, they would be logged in automatically because the idp session is still active.
+		    // tahts the only downside of this approach.
+		    // of course idTokenValue of null could also mean that the user is logged out properly earlier
+		    // and yet this logout was again invoked.
+		    //if so no harm done, we will just redirect to the base url of the application.
 		    	
 		    	
 		    {   
@@ -165,16 +243,17 @@ public class OidcBffApplication {
 		    	}
 		    	
 		    	
-		    	String redirectUrl = issuer+"/v1/logout"+
+		    	String redirectUrl = idTokenValue!=null?issuer+"/v1/logout"+
 		    	//String redirectUrl = "https://trial-8520257.okta.com/oauth2/v1/logout" +
 	                    "?id_token_hint=" + URLEncoder.encode(idTokenValue, StandardCharsets.UTF_8) +
-	                    "&post_logout_redirect_uri="+URLEncoder.encode(baseUrl, StandardCharsets.UTF_8);//"http://localhost:9080";
+	                    "&post_logout_redirect_uri="+URLEncoder.encode(baseUrl, StandardCharsets.UTF_8):baseUrl;//"http://localhost:9080";
 	    		//sendRequest(redirectUrl);
 		    	log.debug("logout base url: {}", baseUrl);
 		    	response.sendRedirect(redirectUrl);
 		    	
 		    	
 		    }
+		    
 
 		    
 		   // response.sendRedirect(redirectUrl);

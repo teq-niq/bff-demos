@@ -50,6 +50,13 @@ public class SimpleBffApplication {
 		body.put("message", "POST request received successfully");
 		return new ResponseEntity<Object>(body, HttpStatus.OK);
 	}
+
+	@GetMapping("/reachability")
+	public Map<String, Boolean> reachability() {
+		Map<String, Boolean> result = new HashMap<>();
+		result.put("reachabilitySummary", true);
+		return result;
+	}
 	
 	 
 	 

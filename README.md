@@ -338,6 +338,28 @@ Might later enhance the oidc.bff E2E tests to also handle first time login in th
 - If you rebuild the workspace, the generated `target` copies will refresh automatically.
 
 
+### Reachability endpoint and redirect UX hardening
+
+We introduced a `reachability` endpoint mainly for the OIDC redirect flow in login/logout paths.
+The key driver was user experience: when the backend or IdP path is unavailable during a redirect-style login/logout action, the browser can otherwise land on a blank or failed page (for example, connection refused).
+
+To handle this more gracefully, Swagger UI can do a pre-check and stay on the current page with a friendly message instead of sending the browser into a failing redirect.
+
+This behavior is intentionally configurable through Springdoc extension registration:
+
+- If `reachability` is registered in the BFF scheme extensions, the pre-check logic is active.
+- If `reachability` is not registered, existing behavior is preserved (no pre-check).
+
+Scope and current usage:
+
+- Primary value is for OIDC redirect-driven login/logout flows.
+- It is used in Swagger UI for the OIDC demo.
+- The same concept is also used in the Angular app of `oidc.bff` for login/logout redirect handling.
+- It is not currently implemented in the Angular app of `simple.bff` because value-add is relatively low for the simple flow, but it can be added if needed.  
+- It is available in Swagger UI and through it also for simple.bff but its value add there is very little so is turned off and can be enabled if needed.  
+
+
+
 # What’s Not Currently Included
 
 - Session-Token Synchronization: 
