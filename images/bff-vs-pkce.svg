@@ -14,6 +14,8 @@
     </style>
   </defs>
 
+  <rect width="1100" height="500" fill="white" />
+
   <!-- Main title -->
   <text x="550" y="36" text-anchor="middle" class="title">BFF vs Standard SPA — Where Do Tokens Live?</text>
 
