@@ -87,7 +87,7 @@ public class OidcBffApplication {
 	
 	
 	@PostMapping("/checkpost")
-	public ResponseEntity<Object> checkPost(HttpServletRequest request, @RequestBody Abc abc) throws IOException {
+	public ResponseEntity<Object> checkPost(HttpServletRequest request, @RequestBody SamplePayload abc) throws IOException {
 		//takes anything
 		HashMap<String, Object> body = new HashMap<String, Object>();
 		body.put("message", "POST request received successfully");

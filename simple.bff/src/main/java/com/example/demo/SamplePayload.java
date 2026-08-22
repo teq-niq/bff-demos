@@ -1,6 +1,6 @@
 package com.example.demo;
 
-public class Abc {
+public class SamplePayload {
 	private String abc;
 
 	public String getAbc() {
