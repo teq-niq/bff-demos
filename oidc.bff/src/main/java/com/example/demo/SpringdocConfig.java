@@ -72,7 +72,8 @@ public class SpringdocConfig {
 		
 		
 		Components components = new Components();
-		// Non-standard HTTP scheme name; "bff" (our innovation) is a new custom contract read by the swagger-ui-bff webjar, not yet an IANA-registered auth scheme.
+		// Non-standard HTTP scheme name; "bff" (our innovation)  is a new custom contract read by the swagger-ui-bff webjar, not yet an IANA-registered auth scheme.
+		// IANA's registry doesn't list Form login either.
 		SecurityScheme bffScheme = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bff");
 		bffScheme.name("BffAuth");
 		Map<String, Object> extensions = bffScheme.getExtensions();
@@ -81,8 +82,9 @@ public class SpringdocConfig {
 			
 			bffScheme.setExtensions(extensions);
 		}
-		// Non-standard HTTP scheme name; "bff" (our innovation)  is a new custom contract read by the swagger-ui-bff webjar, not yet an IANA-registered auth scheme.
-		// IANA's registry doesn't list Form login either.
+		// There are many ways to eliminate this hardcoding (relative URLs, @Value, etc.).
+		// Left as literals here so this method alone shows exactly how Swagger UI is
+		// wired up for BFF — feel free to use whatever approach fits in your code.
 		extensions.put("x-profilecheck", "http://localhost:8081/shortprofile");
 		extensions.put("x-reachability", "http://localhost:8081/reachability");
 		extensions.put("x-login", "http://localhost:8081/oauth2/authorization/okta?source=swagger&prompt=consent");

@@ -81,7 +81,9 @@ public class SpringdocConfig {
 			
 			bffScheme.setExtensions(extensions);
 		}
-		// Hardcoded intentionally: demonstrates that all webjar config flows through these OpenAPI extensions; @Value abstraction would hide the mechanism without improving it.
+		// There are many ways to eliminate this hardcoding (relative URLs, @Value, etc.).
+		// Left as literals here so this method alone shows exactly how Swagger UI is
+		// wired up for BFF — feel free to use whatever approach fits in your code.
 		extensions.put("x-profilecheck", "http://localhost:8080/shortprofile");
 		//not much value add using this reachability in simple.bff but its available and can be used if needed.
 		//extensions.put("x-reachability", "http://localhost:8080/reachability");
