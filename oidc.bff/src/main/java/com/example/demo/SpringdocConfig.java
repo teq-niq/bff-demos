@@ -81,12 +81,12 @@ public class SpringdocConfig {
 			bffScheme.setExtensions(extensions);
 		}
 		// Hardcoded intentionally: demonstrates that all webjar config flows through these OpenAPI extensions; @Value abstraction would hide the mechanism without improving it.
-		extensions.put("profilecheck", "http://localhost:8081/shortprofile");
-		extensions.put("reachability", "http://localhost:8081/reachability");
-		extensions.put("login", "http://localhost:8081/oauth2/authorization/okta?source=swagger&prompt=consent");
-		extensions.put("redirectforlogin", true);
-		extensions.put("logout", "http://localhost:8081/apilogout?source=swagger");
-		extensions.put("redirectforlogout", true);
+		extensions.put("x-profilecheck", "http://localhost:8081/shortprofile");
+		extensions.put("x-reachability", "http://localhost:8081/reachability");
+		extensions.put("x-login", "http://localhost:8081/oauth2/authorization/okta?source=swagger&prompt=consent");
+		extensions.put("x-redirectforlogin", true);
+		extensions.put("x-logout", "http://localhost:8081/apilogout?source=swagger");
+		extensions.put("x-redirectforlogout", true);
 		
 		
 	
