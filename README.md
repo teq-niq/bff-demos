@@ -54,6 +54,8 @@ This README concentrates on how to run the apps, how to use Angular dev mode, an
 - For the OIDC demo, a working Okta tenant and test user
 - For OIDC setup steps, use `okta-setup-for-oidc` in this workspace
 
+On Windows, the commands in this README have been tested with Command Prompt (`cmd.exe`). PowerShell may need command-specific adjustments.
+
 ## First Build
 
 Run this once from the root of `bff-demos`:
@@ -154,16 +156,18 @@ The Angular sources are in `simple.bff/angular-front-end`.
 
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
-```bash
-cd simple.bff
-angularshell.sh 
-```
-or 
-
 ```cmd
 cd simple.bff
 angularshell.bat 
 ```
+
+or, on Ubuntu under WSL 2:
+
+```bash
+cd simple.bff
+./angularshell.sh
+```
+Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. Native Linux and other Unix-like environments have not yet been tested; please raise an issue or PR if you encounter a problem.
 
 <img src="images/simple_angular_shell.png" alt="Angular dev shell" width="400" />
 
@@ -287,16 +291,18 @@ mvn -pl oidc.bff spring-boot:run -P berun -Dokta.tenant.id=[TENANT_ID] -Dokta.oa
 
 Use the local shell wrapper first if you want the isolated Node/npm setup from the repo:
 
-```bash
-cd oidc.bff
-angularshell.sh 
-```
-OR
-
 ```cmd
 cd oidc.bff
 angularshell.bat 
 ```
+
+or, on Ubuntu under WSL 2:
+
+```bash
+cd oidc.bff
+./angularshell.sh
+```
+Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. Native Linux and other Unix-like environments have not yet been tested; please raise an issue or PR if you encounter a problem.
 
 <img src="images/oidc_angular_shell.png" alt="Angular dev shell" width="400" />
 

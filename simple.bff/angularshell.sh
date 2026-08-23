@@ -9,7 +9,7 @@ cd "$PROJECT_DIR/angular-front-end" || exit
 # Isolated toolchain plus the minimal Linux command paths required by Bash.
 export PATH="$PROJECT_DIR/../node:$PROJECT_DIR/angular-front-end/node_modules/.bin:/usr/bin:/bin"
 
-echo "Using Maven-managed Node environment:"
+echo "Using isolated Maven-managed Node environment:"
 node -v
 npm -v
 ng version
