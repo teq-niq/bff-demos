@@ -163,7 +163,7 @@ public class SecurityConfiguration {
 	            .requestMatchers("/secured/user").hasRole("myuser")    // ROLE_myuser
 	            .requestMatchers("/secured/foo").hasAuthority("SCOPE_foo")
 	            .requestMatchers("/secured/bar").hasAuthority("SCOPE_bar")
-	            //.anyRequest().authenticated()
+
 	            .anyRequest().permitAll()
 	        )
 	        .oauth2Login(oauth -> oauth
@@ -183,8 +183,7 @@ public class SecurityConfiguration {
 	    	.logoutSuccessHandler((request, response, authentication) -> {
 	            response.setStatus(HttpServletResponse.SC_NO_CONTENT);  // 204
 	        })
-	    	//.logoutSuccessUrl("/")  
-	    	// Angular home page after logout
+
             .invalidateHttpSession(true)
             .clearAuthentication(true)
             .deleteCookies("JSESSIONID") 
@@ -192,14 +191,9 @@ public class SecurityConfiguration {
 	        
 	        http=http.exceptionHandling(ex -> ex
 	                .authenticationEntryPoint((request, response, authException) -> {
-	                    //String accept = request.getHeader("Accept");
-	                    //if (accept != null && accept.contains("application/json")) {
-	                        // return 401 for API calls
+
 	                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-	                    //} else {
-	                        // default redirect to login page
-	                     //   response.sendRedirect("/login");
-	                    //}
+
 	                })
 	            );
 
@@ -229,8 +223,7 @@ public class SecurityConfiguration {
 	    			session.removeAttribute("source");
 	    		}
 	        }
-	        // Delegate to the default logic or redirect to an error page
-	        //response.sendRedirect("/login?error=" + exception.getMessage());
+	        
 	        if(toSwagger)
 	        {
 	        	
@@ -290,16 +283,10 @@ public class SecurityConfiguration {
 	    	while(parameterNames.hasMoreElements()) {
 	    		String paramName = parameterNames.nextElement();
 	    		String[] paramValues = request.getParameterValues(paramName);
-			log.debug("Request Parameter: {}", paramName);
+	    		log.debug("Request Parameter: {}", paramName);
 	    	}
-	    	String state= request.getParameter("state");
-	    	if(state!=null)
-	    	{
-	    		Decoder urlDecoder = Base64.getUrlDecoder();
-	    		byte[] decoded = urlDecoder.decode(state);
-	    		
-	    		log.debug("Decoded state: {}", new String(decoded));
-	    	}
+	    	//uncomment debugState method if needed for debugging
+	    	//debugState(request);
 	      
 	       
 	      
@@ -328,6 +315,18 @@ public class SecurityConfiguration {
 		        	response.sendRedirect("/");
 		        }
 	    };
+	}
+
+
+	private void debugState(HttpServletRequest request) {
+		String state= request.getParameter("state");
+		if(state!=null)
+		{
+			Decoder urlDecoder = Base64.getUrlDecoder();
+			byte[] decoded = urlDecoder.decode(state);
+			
+			log.debug("Decoded state: {}", new String(decoded));
+		}
 	}
 	
 	

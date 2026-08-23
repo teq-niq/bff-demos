@@ -146,7 +146,6 @@ http=http
     	            .requestMatchers("/secured/admin").hasRole("myadmin")  // ROLE_myadmin
     	            .requestMatchers("/secured/user").hasRole("myuser")    // ROLE_myuser
 
-    	            //.anyRequest().authenticated()
     	            .anyRequest().permitAll()            // everything else allowed
             )
             .formLogin(form -> form
@@ -160,22 +159,18 @@ http=http
             	    //logoutFailureHandler is not needed here. What could really go wrong in our simple scenario. default behaviour is fine.
             	)
             .httpBasic(Customizer.withDefaults()
-            		); // TODO: remove — not needed here. The BFF Swagger plugin handles login via
+            		); // TODO: httpBasic remove — not needed here. The BFF Swagger plugin handles login via
             		   // form login, and curl/Postman/API tools can do the same. The only thing
             		   // httpBasic() adds is support for vanilla Swagger UI's "Authorize" button,
             		   // which this project does not use.
                        //can use in vanilla swagger behaviour examples.
+        			   // retaining. will be removed in future versions of this demo.
         
         http=http.exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) -> {
-                    //String accept = request.getHeader("Accept");
-                    //if (accept != null && accept.contains("application/json")) {
-                        // return 401 for API calls
+
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                    //} else {
-                        // default redirect to login page
-                        //response.sendRedirect("/login");
-                    //}
+
                 })
             );
         
