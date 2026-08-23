@@ -10,6 +10,7 @@
 		<nodeInstallDir>${maven.multiModuleProjectDirectory}</nodeInstallDir>
 		<spring.boot.version>3.5.9</spring.boot.version>
 		<sw.ui.version>5.32.8</sw.ui.version>
+		<okta.spring.boot.starter.version>3.0.8</okta.spring.boot.starter.version>
 	</properties>
 	<url/>
 	<licenses>
