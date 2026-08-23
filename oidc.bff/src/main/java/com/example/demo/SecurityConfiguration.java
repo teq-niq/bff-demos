@@ -103,12 +103,7 @@ public class SecurityConfiguration {
 	  
 		if (feBaseUrlIsNotNull) {
 					
-					
-			if(feBaseUrlIsNotNull) {
-				log.debug("CORS enabled for febaseurl: {}", feBaseUrl);
-			}
-			
-			
+			log.debug("CORS enabled for febaseurl: {}", feBaseUrl);	
 			Customizer<CorsConfigurer<HttpSecurity>> corsCustomizer=new Customizer<CorsConfigurer<HttpSecurity>>() {
 				
 				@Override
