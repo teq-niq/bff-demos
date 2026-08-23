@@ -161,13 +161,14 @@ cd simple.bff
 angularshell.bat 
 ```
 
-or, on Ubuntu under WSL 2:
+or, on Linux / Unix:
 
 ```bash
 cd simple.bff
+chmod +x angularshell.sh
 ./angularshell.sh
 ```
-Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. Native Linux and other Unix-like environments have not yet been tested; please raise an issue or PR if you encounter a problem.
+Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. It is a starting point for an isolated Maven-managed Node environment; adjust the shell script or batch file as needed for your environment.
 
 <img src="images/simple_angular_shell.png" alt="Angular dev shell" width="400" />
 
@@ -296,13 +297,14 @@ cd oidc.bff
 angularshell.bat 
 ```
 
-or, on Ubuntu under WSL 2:
+or, on Linux/Unix:
 
 ```bash
 cd oidc.bff
+chmod +x angularshell.sh
 ./angularshell.sh
 ```
-Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. Native Linux and other Unix-like environments have not yet been tested; please raise an issue or PR if you encounter a problem.
+Note: `angularshell.sh` has been tested on Ubuntu under WSL 2. It is a starting point for an isolated Maven-managed Node environment; adjust the shell script or batch file as needed for your environment.
 
 <img src="images/oidc_angular_shell.png" alt="Angular dev shell" width="400" />
 
