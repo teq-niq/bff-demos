@@ -8,7 +8,6 @@ import java.io.Reader;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,21 +22,13 @@ public class SwaggerResourceController {
     public String redirectToIndex() {
         return "redirect:/swagger-ui/index.html";
     }
-	/*
-	@GetMapping("swagger-ui.html")
-    public String redirectToIndex2() {
-        return "redirect:/swagger-ui/index.html";
-    }*/
+	
 	
 	@GetMapping("swagger-ui/")
     public String redirectToIndex1() {
         return "redirect:/swagger-ui/index.html";
     }
-	private final ResourceLoader resourceLoader;
-	public SwaggerResourceController(ResourceLoader resourceLoader) {
-        this.resourceLoader = resourceLoader;
-    }
-
+	
 	
 	@Value("classpath:config/swagger-initializer.js")
     private Resource swaggerInitializerResource;
@@ -77,11 +68,7 @@ public class SwaggerResourceController {
 	                .body(swaggerInitializerJsContent);
 	    }
 		
-		/*@GetMapping("/csrf-token")
-		@ResponseBody
-	    public CsrfToken csrf(CsrfToken token) {
-	        return token;
-	    }*/
+		
 
 		
 	

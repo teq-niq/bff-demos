@@ -44,7 +44,7 @@ public class SimpleBffApplication {
 	
 	
 	@PostMapping("/checkpost")
-	public ResponseEntity<Object> checkPost(HttpServletRequest request, @RequestBody Abc abc) throws IOException {
+	public ResponseEntity<Object> checkPost(HttpServletRequest request, @RequestBody SamplePayload abc) throws IOException {
 		//takes anything
 		HashMap<String, Object> body = new HashMap<String, Object>();
 		body.put("message", "POST request received successfully");
@@ -63,7 +63,31 @@ public class SimpleBffApplication {
 	 
 	 
 	 
-	
+	/*
+	 * GET is what the callers actually need. Both Swagger UI's BFF plugin and the Angular apps
+	 * perform logout via full-page browser navigation (window.location.href / redirect), not an
+	 * AJAX call carrying a CSRF header — so the endpoint has to be reachable by a plain
+	 * navigation, which means GET.
+	 *
+	 * It matches the OIDC spec's own shape - https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout.
+	 * OpenID Connect RP-Initiated Logout is itself a redirect-based flow — the user agent is
+	 * redirected to the IdP's end-session endpoint, not called via a protected API request.
+	 * A GET-based local logout that then redirects onward to Okta's /v1/logout is consistent
+	 * with that model rather than fighting it.
+	 *
+	 * The residual risk is bounded and understood. Without CSRF protection, an attacker could
+	 * force a victim's browser to hit /apilogout (e.g. via an <img> tag) and log them out
+	 * involuntarily. That's the entire blast radius — it clears the victim's own session,
+	 * nothing more. It does not expose credentials, tokens, or let an attacker authenticate
+	 * as the victim.
+	 *
+	 * Forced-logout is a nuisance, not a compromise. Given the ceiling on impact is "annoying,
+	 * unrequested logout" rather than any confidentiality/integrity breach, the decision was to
+	 * accept that risk rather than add CSRF protection to an endpoint whose only job is
+	 * tearing down state.
+	 * 
+	 * Admittedly in simple.bff could  have used a post here for angular at least but did not seem worth the effort.
+	 */
 	
 	 
 	 @GetMapping("/apilogout")
