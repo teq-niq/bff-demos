@@ -71,6 +71,8 @@ public class SpringdocConfig {
 		
 		
 		Components components = new Components();
+		// Non-standard HTTP scheme name; "bff" (our innovation)  is a new custom contract read by the swagger-ui-bff webjar, not yet an IANA-registered auth scheme.
+	    // IANA's registry doesn't list Form login either.
 		SecurityScheme bffScheme = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bff");
 		bffScheme.name("BffAuth");
 		Map<String, Object> extensions = bffScheme.getExtensions();
