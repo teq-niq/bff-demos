@@ -84,13 +84,13 @@ public class SpringdocConfig {
 		// There are many ways to eliminate this hardcoding (relative URLs, @Value, etc.).
 		// Left as literals here so this method alone shows exactly how Swagger UI is
 		// wired up for BFF — feel free to use whatever approach fits in your code.
-		extensions.put("x-profilecheck", "http://localhost:8080/shortprofile");
+		extensions.put("x-bff-profilecheck", "http://localhost:8080/shortprofile");
 		//not much value add using this reachability in simple.bff but its available and can be used if needed.
-		//extensions.put("x-reachability", "http://localhost:8080/reachability");
-		extensions.put("x-login", "http://localhost:8080/login");
-		extensions.put("x-redirectforlogin", false);
-		extensions.put("x-logout", "http://localhost:8080/apilogout?source=swagger");
-		extensions.put("x-redirectforlogout", false);
+		//extensions.put("x-bff-reachability", "http://localhost:8080/reachability");
+		extensions.put("x-bff-login", "http://localhost:8080/login");
+		extensions.put("x-bff-redirectforlogin", false);
+		extensions.put("x-bff-logout", "http://localhost:8080/apilogout?source=swagger");
+		extensions.put("x-bff-redirectforlogout", false);
 	
 		components = components.addSecuritySchemes(bffScheme.getName(), bffScheme);
 		
