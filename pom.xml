@@ -258,6 +258,11 @@
 	</build>
 	</profile>
         </profiles>
+ <!--
+  repositories - Needed while swagger-ui-bff is a -SNAPSHOT (still in development/review):
+  Maven Central doesn't serve SNAPSHOTs, so this points at Sonatype's
+  snapshot portal instead. Remove once swagger-ui-bff has a stable release.
+-->
 <repositories>
 
   <repository>
