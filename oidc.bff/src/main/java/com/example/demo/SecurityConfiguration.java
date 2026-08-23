@@ -47,6 +47,9 @@ import org.slf4j.LoggerFactory;
 @EnableWebSecurity
 public class SecurityConfiguration {
 	private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
+	// This flexibility (runtime system property of febaseurl) was chosen for this demo app,
+	// so it can show both split-origin dev mode and single-origin deployment.
+	// Do whatever makes sense for your own app.
 	@Value("${febaseurl:#{null}}")
     private String feBaseUrl; // (null if not set)
 	
@@ -120,7 +123,7 @@ public class SecurityConfiguration {
 						
 							
 						
-						
+						// Broad for demo simplicity; tighten to only the methods/headers you actually use in your code if so needed.
 						cors.addAllowedMethod("*");
 						cors.addAllowedHeader("*");
 						cors.setAllowCredentials(true);
