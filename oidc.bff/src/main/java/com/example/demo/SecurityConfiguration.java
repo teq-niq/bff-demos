@@ -47,78 +47,71 @@ import org.slf4j.LoggerFactory;
 @EnableWebSecurity
 public class SecurityConfiguration {
 	private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
-	// This flexibility (runtime system property of febaseurl) was chosen for this demo app,
+	// This flexibility (runtime system property of febaseurl) was chosen for this
+	// demo app,
 	// so it can show both split-origin dev mode and single-origin deployment.
 	// Do whatever makes sense for your own app.
 	@Value("${febaseurl:#{null}}")
-    private String feBaseUrl; // (null if not set)
-	
-	
-	
+	private String feBaseUrl; // (null if not set)
+
 	@PostConstruct
-	private void init()
-	{
-		if(feBaseUrl!=null && feBaseUrl.trim().length()==0)
-		{
-			feBaseUrl=null;
+	private void init() {
+		if (feBaseUrl != null && feBaseUrl.trim().length() == 0) {
+			feBaseUrl = null;
 		}
-		
+
 	}
-	
-	
+
 	@Bean
 	public OAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService() {
 
-	    OidcUserService delegate = new OidcUserService();
+		OidcUserService delegate = new OidcUserService();
 
-	    return (userRequest) -> {
+		return (userRequest) -> {
 
-	        OidcUser oidcUser = delegate.loadUser(userRequest);
+			OidcUser oidcUser = delegate.loadUser(userRequest);
 
-	        Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
+			Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
 
-	        // read Okta "groups" claim
-	        Collection<String> groups = oidcUser.getAttribute("groups");
-	        if (groups != null) {
-	            for (String group : groups) {
-	                mapped.add(new SimpleGrantedAuthority("ROLE_" + group));
-	            }
-	        }
+			// read Okta "groups" claim
+			Collection<String> groups = oidcUser.getAttribute("groups");
+			if (groups != null) {
+				for (String group : groups) {
+					mapped.add(new SimpleGrantedAuthority("ROLE_" + group));
+				}
+			}
 
-	        return new DefaultOidcUser(
-	                mapped,
-	                oidcUser.getIdToken(),
-	                oidcUser.getUserInfo()
-	        );
-	    };
+			return new DefaultOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo());
+		};
 	}
+
 	@Autowired
 	CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
-	
+
 	@Bean
 	public SecurityFilterChain security(HttpSecurity http) throws Exception {
 		log.debug("feBaseUrl=[{}]", feBaseUrl);
-	 
-	   boolean feBaseUrlIsNotNull = feBaseUrl!=null;
-	  
+
+		boolean feBaseUrlIsNotNull = feBaseUrl != null;
+
 		if (feBaseUrlIsNotNull) {
-					
-			log.debug("CORS enabled for febaseurl: {}", feBaseUrl);	
-			Customizer<CorsConfigurer<HttpSecurity>> corsCustomizer=new Customizer<CorsConfigurer<HttpSecurity>>() {
-				
+
+			log.debug("CORS enabled for febaseurl: {}", feBaseUrl);
+			Customizer<CorsConfigurer<HttpSecurity>> corsCustomizer = new Customizer<CorsConfigurer<HttpSecurity>>() {
+
 				@Override
 				public void customize(CorsConfigurer<HttpSecurity> http) {
-					
-					http.configurationSource(request->{
-						CorsConfiguration cors=new CorsConfiguration();
-						if(feBaseUrlIsNotNull) {
+
+					http.configurationSource(request -> {
+						CorsConfiguration cors = new CorsConfiguration();
+						if (feBaseUrlIsNotNull) {
 							cors.addAllowedOrigin(feBaseUrl);
-						log.debug("added feBaseUrl to CORS:{} for request URL:{}", feBaseUrl, request.getRequestURL());
+							log.debug("added feBaseUrl to CORS:{} for request URL:{}", feBaseUrl,
+									request.getRequestURL());
 						}
-						
-							
-						
-						// Broad for demo simplicity; tighten to only the methods/headers you actually use in your code if so needed.
+
+						// Broad for demo simplicity; tighten to only the methods/headers you actually
+						// use in your code if so needed.
 						cors.addAllowedMethod("*");
 						cors.addAllowedHeader("*");
 						cors.setAllowCredentials(true);
@@ -126,206 +119,157 @@ public class SecurityConfiguration {
 					});
 				}
 			};
-			
-			http=http.cors(corsCustomizer);
-			http=http
-				    .csrf(csrf -> 
-				    		csrf
-				    		.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				    		.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()) 
-				    	  );
+
+			http = http.cors(corsCustomizer);
+			http = http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+					.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()));
 			log.debug("CSRF protection is enabled");
+		} else {
+			log.debug(
+					"The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
+			http = http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+					.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()));
 		}
-		else
-		{
-			log.debug("The application is self-contained, CORS remains deny-by-default and CSRF protection is enabled.");
-			http=http
-				    .csrf(csrf -> 
-				    		csrf
-				    		.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				    		.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()) 
-				    	  );
-		}
-		
-		
-		
 
-	    
-	        http.authorizeHttpRequests(auth -> auth
-	        		.requestMatchers("/secured/profile").authenticated()
-	        		
-	            .requestMatchers("/secured/admin").hasRole("myadmin")  // ROLE_myadmin
-	            .requestMatchers("/secured/user").hasRole("myuser")    // ROLE_myuser
-	            .requestMatchers("/secured/foo").hasAuthority("SCOPE_foo")
-	            .requestMatchers("/secured/bar").hasAuthority("SCOPE_bar")
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/secured/profile").authenticated()
 
-	            .anyRequest().permitAll()
-	        )
-	        .oauth2Login(oauth -> oauth
-	        		.authorizationEndpoint(authEndpoint -> authEndpoint 
-	        		        
-	        		        .authorizationRequestResolver(customAuthorizationRequestResolver)
-	        		    )
-	            .userInfoEndpoint(userInfo -> userInfo
-	                .oidcUserService(customOidcUserService())
-	                
-	            )
-	            
-	            .successHandler(customSuccessHandler()) 
-	            
-	        ).logout(cfg->
-	    	cfg.logoutUrl("/logout")
-	    	.logoutSuccessHandler((request, response, authentication) -> {
-	            response.setStatus(HttpServletResponse.SC_NO_CONTENT);  // 204
-	        })
+				.requestMatchers("/secured/admin").hasRole("myadmin") // ROLE_myadmin
+				.requestMatchers("/secured/user").hasRole("myuser") // ROLE_myuser
+				.requestMatchers("/secured/foo").hasAuthority("SCOPE_foo").requestMatchers("/secured/bar")
+				.hasAuthority("SCOPE_bar")
 
-            .invalidateHttpSession(true)
-            .clearAuthentication(true)
-            .deleteCookies("JSESSIONID") 
-	    );
-	        
-	        http=http.exceptionHandling(ex -> ex
-	                .authenticationEntryPoint((request, response, authException) -> {
+				.anyRequest().permitAll()).oauth2Login(oauth -> oauth
+						.authorizationEndpoint(authEndpoint -> authEndpoint
 
-	                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+								.authorizationRequestResolver(customAuthorizationRequestResolver))
+						.userInfoEndpoint(userInfo -> userInfo.oidcUserService(customOidcUserService())
 
-	                })
-	            );
+						)
 
-	    return http.build();
+						.successHandler(customSuccessHandler())
+
+		).logout(cfg -> cfg.logoutUrl("/logout").logoutSuccessHandler((request, response, authentication) -> {
+			response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
+		})
+
+				.invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID"));
+
+		http = http.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+
+		}));
+
+		return http.build();
 	}
-	
+
 	@Bean
 	AuthenticationFailureHandler customFailureHandler() {
-	    // Must match the key used in the resolver
-	    
+		// Must match the key used in the resolver
 
-	    return (request, response, exception) -> {
-	    	boolean toSwagger=false;
-	    	
-	        HttpSession session = request.getSession(false);
-	        if (session != null) {
-	        	String source = (String) session.getAttribute("source");
-	    		if(source!=null )
-	    		{
-	    			log.debug("source on fail from session={}", source);
-	    			
-	    			if(source.equals("swagger"))
-	    			{
-	    				toSwagger=true;
-	    			}
-	    			
-	    			session.removeAttribute("source");
-	    		}
-	        }
-	        
-	        if(toSwagger)
-	        {
-	        	
-    		 	response.sendRedirect("/swagger-ui/index.html");	
-    		 	
-	        }
-	        
-	        else
-	        {
-	        	response.sendRedirect("/");
-	        }
-	    };
+		return (request, response, exception) -> {
+			boolean toSwagger = false;
+
+			HttpSession session = request.getSession(false);
+			if (session != null) {
+				String source = (String) session.getAttribute("source");
+				if (source != null) {
+					log.debug("source on fail from session={}", source);
+
+					if (source.equals("swagger")) {
+						toSwagger = true;
+					}
+
+					session.removeAttribute("source");
+				}
+			}
+
+			if (toSwagger) {
+
+				response.sendRedirect("/swagger-ui/index.html");
+
+			}
+
+			else {
+				response.sendRedirect("/");
+			}
+		};
 	}
-	
+
 	@Bean
 	AuthenticationSuccessHandler customSuccessHandler() {
-	    return (request, response, authentication) -> {
-	    	boolean toSwagger=false;
-	    	
-	    	boolean toFrontEnd=false;
-	    	HttpSession session = request.getSession();
-	    	log.debug("session is not null: {}", session != null);
-	    	if(session!=null)
-	    	{
-	    		
-	    		Enumeration<String> attributeNames = session.getAttributeNames();
-	    		
-	    		while(attributeNames.hasMoreElements()) {
-	    			String attributeName = attributeNames.nextElement();
-	    			Object attribute = session.getAttribute(attributeName);
-	    			String cn=null;
-	    			if(attribute!=null)
-	    			{
-	    				cn=attribute.getClass().getName();
-	    			}
-				log.debug("Session Attribute: {} @{}", attributeName, cn);
-	    		}
-	    		
-	    		String source = (String) session.getAttribute("source");
-	    		if(source!=null )
-	    		{
-	    			log.debug("source from session={}", source);
-	    			if(source.equals("swagger"))
-	    			{
-	    				toSwagger=true;
-	    			}
-	    			
-	    			else if(source.equals("frontend"))
-	    			{
-	    				toFrontEnd=true;
-	    			}
-	    		}
-	    		
-	    	}
-	    	Enumeration<String> parameterNames = request.getParameterNames();
-	    	
-	    	while(parameterNames.hasMoreElements()) {
-	    		String paramName = parameterNames.nextElement();
-	    		String[] paramValues = request.getParameterValues(paramName);
-	    		log.debug("Request Parameter: {}", paramName);
-	    	}
-	    	//uncomment debugState method if needed for debugging
-	    	//debugState(request);
-	      
-	       
-	      
-	    	 if(toSwagger)
-		        {
-	    		 	
-	    		 	response.sendRedirect("/swagger-ui/index.html");	
-	    		 	
-		        	
-		        }
-	    	
-	    	
-	    	 else if(toFrontEnd)
-		        {
-	    		 if(feBaseUrl!=null) {
-	    			 response.sendRedirect(feBaseUrl);
-		    		}
-		    		else
-		    		{
-		    			response.sendRedirect("/");
-		    		}
-		        	
-		        }
-		        else
-		        {
-		        	response.sendRedirect("/");
-		        }
-	    };
+		return (request, response, authentication) -> {
+			boolean toSwagger = false;
+
+			boolean toFrontEnd = false;
+			HttpSession session = request.getSession();
+			log.debug("session is not null: {}", session != null);
+			if (session != null) {
+
+				Enumeration<String> attributeNames = session.getAttributeNames();
+
+				while (attributeNames.hasMoreElements()) {
+					String attributeName = attributeNames.nextElement();
+					Object attribute = session.getAttribute(attributeName);
+					String cn = null;
+					if (attribute != null) {
+						cn = attribute.getClass().getName();
+					}
+					log.debug("Session Attribute: {} @{}", attributeName, cn);
+				}
+
+				String source = (String) session.getAttribute("source");
+				if (source != null) {
+					log.debug("source from session={}", source);
+					if (source.equals("swagger")) {
+						toSwagger = true;
+					}
+
+					else if (source.equals("frontend")) {
+						toFrontEnd = true;
+					}
+				}
+
+			}
+			Enumeration<String> parameterNames = request.getParameterNames();
+
+			while (parameterNames.hasMoreElements()) {
+				String paramName = parameterNames.nextElement();
+				String[] paramValues = request.getParameterValues(paramName);
+				log.debug("Request Parameter: {}", paramName);
+			}
+			// uncomment debugState method if needed for debugging
+			// debugState(request);
+
+			if (toSwagger) {
+
+				response.sendRedirect("/swagger-ui/index.html");
+
+			}
+
+			else if (toFrontEnd) {
+				if (feBaseUrl != null) {
+					response.sendRedirect(feBaseUrl);
+				} else {
+					response.sendRedirect("/");
+				}
+
+			} else {
+				response.sendRedirect("/");
+			}
+		};
 	}
 
-
 	private void debugState(HttpServletRequest request) {
-		String state= request.getParameter("state");
-		if(state!=null)
-		{
+		String state = request.getParameter("state");
+		if (state != null) {
 			Decoder urlDecoder = Base64.getUrlDecoder();
 			byte[] decoded = urlDecoder.decode(state);
-			
+
 			log.debug("Decoded state: {}", new String(decoded));
 		}
 	}
-	
-	
-	
+
 	final static class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
 		private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
 		private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
@@ -333,12 +277,13 @@ public class SecurityConfiguration {
 		@Override
 		public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
 			/*
-			 * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of
-			 * the CsrfToken when it is rendered in the response body.
+			 * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection
+			 * of the CsrfToken when it is rendered in the response body.
 			 */
 			this.xor.handle(request, response, csrfToken);
 			/*
-			 * Render the token value to a cookie by causing the deferred token to be loaded.
+			 * Render the token value to a cookie by causing the deferred token to be
+			 * loaded.
 			 */
 			csrfToken.get();
 		}
@@ -347,10 +292,10 @@ public class SecurityConfiguration {
 		public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
 			String headerValue = request.getHeader(csrfToken.getHeaderName());
 			/*
-			 * If the request contains a request header, use CsrfTokenRequestAttributeHandler
-			 * to resolve the CsrfToken. This applies when a single-page application includes
-			 * the header value automatically, which was obtained via a cookie containing the
-			 * raw CsrfToken.
+			 * If the request contains a request header, use
+			 * CsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when
+			 * a single-page application includes the header value automatically, which was
+			 * obtained via a cookie containing the raw CsrfToken.
 			 *
 			 * In all other cases (e.g. if the request contains a request parameter), use
 			 * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies
@@ -360,6 +305,5 @@ public class SecurityConfiguration {
 			return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request, csrfToken);
 		}
 	}
-	
-	
+
 }
