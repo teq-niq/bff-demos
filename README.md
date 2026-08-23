@@ -18,6 +18,11 @@ This project is called BFF-demos because it demonstrates Backend-for-Frontend (B
 
 The rationale for the BFF pattern, why it is preferred over PKCE for SPAs, and how it integrates with Swagger UI is covered in detail in the [earlier project](https://github.com/teq-niq/bff/). This project picks up from there.
 
+Even at the risk of repeating myself, the underlying security case is worth restating here rather than leaving it a click away, since it's the reason this whole project exists:
+- **IETF** — the [OAuth 2.0 for Browser-Based Apps](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps) draft highlights that using a BFF to issue secure, `HttpOnly` cookies is the best way to prevent token exfiltration.
+- **Auth0** — their [BFF pattern overview](https://auth0.com/blog/the-backend-for-frontend-pattern-bff/) notes the pattern is essential to mitigate risks inherent in handling access tokens from public clients.
+- **Okta** — [recommends the BFF model](https://developer.okta.com/docs/concepts/manage-user-creds/#backend-for-frontend-model) to centralize token management on a trusted server, stating it "centralizes all token management on a single, trusted server, reducing the attack surface and making the entire system more resilient to client-side attacks."
+
 For the BFF pattern to work, the apps must not be pure SPAs — the Angular front-end piggybacks on an HTTP session managed by the backend, keeping tokens server-side where they belong.
 
 ![BFF vs Standard SPA](images/bff-vs-pkce.svg)
