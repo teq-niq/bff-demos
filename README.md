@@ -23,7 +23,7 @@ Even at the risk of repeating myself, the underlying security case is worth rest
 - **Auth0** — their [BFF pattern overview](https://auth0.com/blog/the-backend-for-frontend-pattern-bff/) notes the pattern is essential to mitigate risks inherent in handling access tokens from public clients.
 - **Okta** — [recommends the BFF model](https://developer.okta.com/docs/concepts/manage-user-creds/#backend-for-frontend-model) to centralize token management on a trusted server, stating it "centralizes all token management on a single, trusted server, reducing the attack surface and making the entire system more resilient to client-side attacks."
 
-For the BFF pattern to work, the apps must not be pure SPAs — the Angular front-end piggybacks on an HTTP session managed by the backend, keeping tokens server-side where they belong.
+For the BFF pattern to work, the apps must not be pure SPAs — the Angular front-end piggybacks on an HTTP session managed by the backend, keeping access and refresh tokens server-side where they belong.
 
 ![BFF vs Standard SPA](images/bff-vs-pkce.svg)
 
