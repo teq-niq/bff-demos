@@ -156,6 +156,22 @@ Before selecting FastPass, the test prints an ACTION REQUIRED banner in the term
 
 The test also inserts a yellow, full-width instruction banner at the top of the Okta page, using the same layout as the existing session-status banner. It does not intercept clicks and disappears on full-page navigation. Browser-native prompts may temporarily dim or cover the page banner.
 
+#### Manual interaction — screenshots in order
+
+**1. First, the instruction banner appears.** The test is waiting for you to complete FastPass approval; no TOTP code is needed.
+
+![FastPass instruction banner on the Okta page](../../images/fastpass0.png)
+
+**2. Next, the browser popups appear.** First click **Allow** to permit access to apps and services on this device, then click **Open Okta Verify** to launch the Windows app.
+
+![Browser popups showing Allow followed by Open Okta Verify](../../images/fastpass1.png)
+
+**3. Lastly, the Okta Verify confirmation appears.** Confirm that the account, application, and tenant match the sign-in you just initiated, then click **Yes, it's me**.
+
+![Okta Verify sign-in confirmation showing Yes, it's me](../../images/fastpass2.png)
+
+**After this approval, the password screen appears and password entry is automated.** The test fills and submits the configured test-user password; you do not need to type it. The rest of the flow is also automated: return to Swagger UI, verification of the authenticated session and secured endpoint, logout, and verification that access is removed.
+
 ```ts
 await page.waitForFunction((appOrigin) => {
   const app = new URL(appOrigin);
