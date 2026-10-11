@@ -2,6 +2,8 @@
 
 Learning reference for the Playwright patterns used in this test.
 
+**Current authentication flow:** In the Okta configuration observed for this demo's app users, TOTP is no longer enabled by default; **Okta Verify FastPass is active in addition to password authentication**. The test handles manual browser/app approval for FastPass instead of manual 6-digit TOTP entry, and automatically fills and submits the password. Other tenants or authentication policies may differ.
+
 ---
 
 ## Files at a glance
