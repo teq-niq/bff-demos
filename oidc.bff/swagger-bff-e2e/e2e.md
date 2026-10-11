@@ -143,6 +143,14 @@ If the test account has not been enrolled in desktop Okta Verify, the **Set up s
 
 Complete the setup steps manually outside the test, installing desktop Okta Verify if needed. Setup may launch another browser outside Playwright's control. Once enrollment is complete, **rerun the E2E command** to test the normal FastPass login flow. The initial setup-required run reports an error; it is not a successful E2E login/logout test.
 
+**Manual setup ends with the account listed in desktop Okta Verify**, as shown below. Check that your test user's email and Okta tenant appear in the **Accounts** list. You can then rerun E2E with that enrolled user.
+
+![Completed manual setup with the enrolled account listed in desktop Okta Verify](../../images/first-time-fast-pass-end.png)
+
+**Tested configuration: Windows Hello confirmation was not enabled.** We left it **Off** in desktop Okta Verify for these semi-automated E2E tests, as shown below. Windows Hello-enabled flows have not been tested and may require additional manual PIN, face, or fingerprint confirmation outside Playwright's control. Follow your organization's authentication policy.
+
+![Desktop Okta Verify account settings with Windows Hello confirmation Off](../../images/first-time-fast-pass-no-hello.png)
+
 **First-login scope consent is handled automatically.** After setup, the first login may show a scope-selection screen. The test leaves the scope selections unchanged and clicks **Allow Access** for the expected application and scopes. After consent is granted, later logins do not show this screen unless re-consent is explicitly forced, and the test continues directly.
 
 ```ts
