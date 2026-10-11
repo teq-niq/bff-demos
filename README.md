@@ -339,6 +339,8 @@ This runs the simple form-login flow through Swagger UI and checks the authentic
 
 ### OIDC demo
 
+Prerequisite: complete the Okta app and user setup in okta-setup-for-oidc before running the OIDC demo.  
+
 ```bash
 mvn -pl oidc.bff verify -Pe2e -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] -Dokta.test.user.email=[TEST_USER_EMAIL] -Dokta.test.user.password=[TEST_USER_PASSWORD]
 ```
