@@ -19,19 +19,19 @@ Learning reference for the Playwright patterns used in this test.
 ```ts
 timeout: 3 * 60 * 1000   // 3-minute per-test timeout
 ```
-The test pauses for manual TOTP entry, so a 3-minute budget is needed. The default (30 s) would time out.
+The test allows time for the user to approve an Okta Verify FastPass prompt. The default (30 s) could time out.
 
 ```ts
 fullyParallel: false
 workers: 1
 retries: 0
 ```
-One browser, one test, no retries. MFA flows can't be parallelised (each attempt uses the same TOTP window) and retrying after a failed login would hit Okta lockout.
+One browser, one test, no retries. MFA flows can't be parallelised, and retrying after a failed login could hit Okta lockout.
 
 ```ts
 headless: false
 ```
-The browser must be visible so you can type the TOTP code into the Okta Verify screen.
+The browser must be visible so you can follow any Okta FastPass prompts. Approve the sign-in on the enrolled device when requested.
 
 ```ts
 trace: 'on-first-retry'
@@ -136,55 +136,35 @@ await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
 
 ---
 
-### Step 5 — Method selection screen
+### Step 5 — Select Okta Verify FastPass
 
 ```ts
-await page.waitForSelector('[data-se="okta_verify-totp"] a', { timeout: 15_000 });
-await page.click('[data-se="okta_verify-totp"] a');
+const fastPassOption = page.getByRole('link', { name: 'Select Okta Verify.' });
+await expect(fastPassOption).toBeVisible({ timeout: 15_000 });
+await fastPassOption.click();
 ```
 
-After username, Okta shows a list of enrolled authenticators. The `data-se` attribute is Okta's own test-hook attribute — it's stable across Okta UI versions.
+The currently observed Okta method screen offers Password and "Use Okta FastPass". Select the Okta Verify link by its accessible name.
 
-`[data-se="okta_verify-totp"] a` means: find the list item whose `data-se` is `okta_verify-totp`, then click the anchor tag inside it (the "Select" link).
+The test attaches the page DOM after selecting FastPass to its Playwright output under the ignored `test-results` directory. Review that artifact if Okta shows a new screen; the first-time setup and returning-user routes should be handled based on screens observed during actual runs.
 
-**Why `waitForSelector` before `click`?**  
-Each Okta screen is a separate SPA transition (not a full page load). `waitForSelector` ensures the new screen's DOM has rendered before Playwright tries to click. Without it, the click can target a stale element from the previous screen.
+### Step 6 — Approve FastPass
 
----
+Approve the request on the enrolled device if Okta prompts for it. The test waits for either the callback to Swagger UI or an Okta password field. If neither appears, Playwright's failure snapshot and attached DOM show the screen that needs handling next.
 
-### Step 6 — TOTP screen (manual pause)
+Before selecting FastPass, the test prints an ACTION REQUIRED banner in the terminal/Maven output. If Chrome asks for access to apps/services on the device, click **Allow**, then click **Open Okta Verify** on its application prompt. Complete any approval in the Windows Okta Verify app. These browser-native prompts are handled manually, not through page selectors. No TOTP code is needed.
+
+The test also inserts a yellow, full-width instruction banner at the top of the Okta page, using the same layout as the existing session-status banner. It does not intercept clicks and disappears on full-page navigation. Browser-native prompts may temporarily dim or cover the page banner.
 
 ```ts
-await page.waitForSelector('input[name="credentials.totp"]', { timeout: 30_000 });
-console.log('\n>>> PAUSED — type your Okta Verify code in the browser and click Verify <<<\n');
+await page.waitForFunction((appOrigin) => {
+  const app = new URL(appOrigin);
+  return (location.origin === app.origin && location.pathname.includes('/swagger-ui')) ||
+    document.querySelector('input[name="credentials.passcode"]') !== null;
+}, APP_ORIGIN, { timeout: 150_000 });
 ```
 
-Playwright waits for the TOTP input to appear, then prints a message and **does nothing else**. The test pauses here — you open the Okta Verify app, read the 6-digit code, type it in the browser, and click Verify yourself.
-
-The 30-second timeout gives time for the screen transition after clicking the Okta Verify option.
-
-**CI automation path (in the TODO comment):**  
-Store the TOTP seed (`OKTA_TOTP_SECRET`) as a CI secret, then generate the code with `otplib`:
-```ts
-import { authenticator } from 'otplib';
-const otp = authenticator.generate(process.env.OKTA_TOTP_SECRET!);
-await page.fill('input[name="credentials.totp"]', otp);
-await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
-```
-
----
-
-### Step 7 — Password screen
-
-```ts
-await page.waitForSelector('input[name="credentials.passcode"]', { timeout: 180_000 });
-await page.fill('input[name="credentials.passcode"]', TEST_USER_PASSWORD);
-await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
-```
-
-The 3-minute timeout here is the human-TOTP budget. This `waitForSelector` is what actually blocks while you type the OTP code and click Verify in the browser. Once Okta accepts the TOTP it transitions to the password screen, Playwright detects `input[name="credentials.passcode"]`, and the test continues automatically.
-
-**`credentials.passcode`** is Okta's field name for the password on the combined-auth screen (distinct from `credentials.totp` used for TOTP).
+If Okta requests the account password after FastPass approval, Playwright fills `input[name="credentials.passcode"]` and submits it. Otherwise it continues after returning to Swagger UI.
 
 ---
 

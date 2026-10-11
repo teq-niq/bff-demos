@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  // Global timeout per test — high because MFA requires manual OTP entry
+  // Global timeout per test — allows time for the user to approve FastPass.
   timeout: 3 * 60 * 1000, // 3 minutes
   expect: {
     timeout: 15_000,
