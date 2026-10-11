@@ -345,7 +345,7 @@ mvn -pl oidc.bff verify -Pe2e -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-
 
 This runs the Okta redirect flow using **Okta Verify FastPass**. These test users no longer use TOTP; no 6-digit code is required.
 
-When the action-required banner appears, complete the manual interaction:
+When the action-required banner appears, <mark>complete the manual interaction</mark>:
 
 1. Click **Allow** if the browser asks to access apps and services on this device.
 2. Click **Open Okta Verify** on the browser prompt.
@@ -402,5 +402,4 @@ The [troubleshooting notes](notes/troubleshooting.md) capture issues encountered
 ## About the Demo Code
 
 The novelty here is the [Swagger UI BFF extension](https://github.com/teq-niq/swagger-ui-bff). The two demo apps — one with Spring Security form login, one with Okta OIDC — are there to show it working in realistic scenarios. The server-side code is context for the extension.
-
 
