@@ -2,6 +2,8 @@
 
 Learning reference for the Playwright patterns used in this test.
 
+**Current authentication flow:** In the Okta configuration observed for this demo's app users, TOTP is no longer enabled by default; **Okta Verify FastPass is active in addition to password authentication**. The test handles manual browser/app approval for FastPass instead of manual 6-digit TOTP entry, and automatically fills and submits the password. Other tenants or authentication policies may differ.
+
 ---
 
 ## Files at a glance
@@ -19,24 +21,19 @@ Learning reference for the Playwright patterns used in this test.
 ```ts
 timeout: 3 * 60 * 1000   // 3-minute per-test timeout
 ```
-The test pauses for manual TOTP entry, so a 3-minute budget is needed. The default (30 s) would time out.
+The test allows time for the user to approve an Okta Verify FastPass prompt. The default (30 s) could time out.
 
 ```ts
 fullyParallel: false
 workers: 1
 retries: 0
 ```
-One browser, one test, no retries. MFA flows can't be parallelised (each attempt uses the same TOTP window) and retrying after a failed login would hit Okta lockout.
+One browser, one test, no retries. MFA flows can't be parallelised, and retrying after a failed login could hit Okta lockout.
 
 ```ts
 headless: false
 ```
-The browser must be visible so you can type the TOTP code into the Okta Verify screen.
-
-```ts
-trace: 'on-first-retry'
-```
-Records a Playwright trace (screenshots + DOM snapshots + network) on the first retry — useful for debugging failures without changing the test.
+The browser must be visible so you can follow any Okta FastPass prompts. Approve the sign-in on the enrolled device when requested.
 
 ```ts
 baseURL: process.env.SWAGGER_UI_URL ?? 'http://localhost:8081'
@@ -136,55 +133,71 @@ await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
 
 ---
 
-### Step 5 — Method selection screen
+### Step 5 — Select Okta Verify FastPass
+
+After username submission, the test waits for either the FastPass selection link or a password field. For the observed password-first route, it automatically fills the configured password and clicks **Verify**. If Okta then shows **Set up security methods**, the test displays a **SETUP REQUIRED** banner for 15 seconds and stops with an explicit enrollment-required error. It does not click **Set up** or attempt enrollment: setup opens another browser outside Playwright's control. Complete Okta Verify setup manually outside the test, then run the E2E command again. This setup-required run is not a completed E2E verification.
+
+#### User not yet set up in desktop Okta Verify
+
+If the test account has not been enrolled in desktop Okta Verify, the **Set up security methods** screen and yellow **SETUP REQUIRED** banner appear as shown below. This is as far as the automated test can go for an unenrolled account.
+
+![Unenrolled user shown the Okta Verify setup screen and SETUP REQUIRED banner](../../images/first-time-fast-pass1.png)
+
+Complete the setup steps manually outside the test, installing desktop Okta Verify if needed. Setup may launch another browser outside Playwright's control. Once enrollment is complete, **rerun the E2E command** to test the normal FastPass login flow. The initial setup-required run reports an error; it is not a successful E2E login/logout test.
+
+**Manual setup ends with the account listed in desktop Okta Verify**, as shown below. Check that your test user's email and Okta tenant appear in the **Accounts** list. You can then rerun E2E with that enrolled user.
+
+![Completed manual setup with the enrolled account listed in desktop Okta Verify](../../images/first-time-fast-pass-end.png)
+
+**Tested configuration: Windows Hello confirmation was not enabled.** We left it **Off** in desktop Okta Verify for these semi-automated E2E tests, as shown below. Windows Hello-enabled flows have not been tested and may require additional manual PIN, face, or fingerprint confirmation outside Playwright's control. Follow your organization's authentication policy.
+
+![Desktop Okta Verify account settings with Windows Hello confirmation Off](../../images/first-time-fast-pass-no-hello.png)
+
+**First-login scope consent is handled automatically.** After setup, the first login may show a scope-selection screen. The test leaves the scope selections unchanged and clicks **Allow Access** for the expected application and scopes. After consent is granted, later logins do not show this screen unless re-consent is explicitly forced, and the test continues directly.
 
 ```ts
-await page.waitForSelector('[data-se="okta_verify-totp"] a', { timeout: 15_000 });
-await page.click('[data-se="okta_verify-totp"] a');
+const fastPassOption = page.getByRole('link', { name: 'Select Okta Verify.' });
+await expect(fastPassOption).toBeVisible({ timeout: 15_000 });
+await fastPassOption.click();
 ```
 
-After username, Okta shows a list of enrolled authenticators. The `data-se` attribute is Okta's own test-hook attribute — it's stable across Okta UI versions.
+The currently observed Okta method screen offers Password and "Use Okta FastPass". Select the Okta Verify link by its accessible name.
 
-`[data-se="okta_verify-totp"] a` means: find the list item whose `data-se` is `okta_verify-totp`, then click the anchor tag inside it (the "Select" link).
+### Step 6 — Approve FastPass
 
-**Why `waitForSelector` before `click`?**  
-Each Okta screen is a separate SPA transition (not a full page load). `waitForSelector` ensures the new screen's DOM has rendered before Playwright tries to click. Without it, the click can target a stale element from the previous screen.
+Approve the request on the enrolled device if Okta prompts for it. The test waits for the callback to Swagger UI, an Okta password field, or the scope-consent screen. If none appears, the test times out.
 
----
+Before selecting FastPass, the test prints an ACTION REQUIRED banner in the terminal/Maven output. If Chrome asks for access to apps/services on the device, click **Allow**, then click **Open Okta Verify** on its application prompt. Complete any approval in the Windows Okta Verify app. These browser-native prompts are handled manually, not through page selectors. No TOTP code is needed.
 
-### Step 6 — TOTP screen (manual pause)
+The test also inserts a yellow, full-width instruction banner at the top of the Okta page, using the same layout as the existing session-status banner. It does not intercept clicks and disappears on full-page navigation. Browser-native prompts may temporarily dim or cover the page banner.
+
+#### Manual interaction — screenshots in order
+
+**1. First, the instruction banner appears.** The test is waiting for you to complete FastPass approval; no TOTP code is needed.
+
+![FastPass instruction banner on the Okta page](../../images/fastpass0.png)
+
+**2. Next, the browser popups appear.** First click **Allow** to permit access to apps and services on this device, then click **Open Okta Verify** to launch the Windows app.
+
+![Browser popups showing Allow followed by Open Okta Verify](../../images/fastpass1.png)
+
+**3. Lastly, the Okta Verify confirmation appears.** Confirm that the account, application, and tenant match the sign-in you just initiated, then click **Yes, it's me**.
+
+![Okta Verify sign-in confirmation showing Yes, it's me](../../images/fastpass2.png)
+
+**After this approval, the password screen appears and password entry is automated.** The test fills and submits the configured test-user password; you do not need to type it. The rest of the flow is also automated: return to Swagger UI, verification of the authenticated session and secured endpoint, logout, and verification that access is removed.
 
 ```ts
-await page.waitForSelector('input[name="credentials.totp"]', { timeout: 30_000 });
-console.log('\n>>> PAUSED — type your Okta Verify code in the browser and click Verify <<<\n');
+await page.waitForFunction((appOrigin) => {
+  const app = new URL(appOrigin);
+  return (location.origin === app.origin && location.pathname.includes('/swagger-ui')) ||
+    document.querySelector('input[name="credentials.passcode"]') !== null;
+}, APP_ORIGIN, { timeout: 150_000 });
 ```
 
-Playwright waits for the TOTP input to appear, then prints a message and **does nothing else**. The test pauses here — you open the Okta Verify app, read the 6-digit code, type it in the browser, and click Verify yourself.
+If Okta requests the account password after FastPass approval, Playwright fills `input[name="credentials.passcode"]` and submits it. Otherwise it continues after returning to Swagger UI.
 
-The 30-second timeout gives time for the screen transition after clicking the Okta Verify option.
-
-**CI automation path (in the TODO comment):**  
-Store the TOTP seed (`OKTA_TOTP_SECRET`) as a CI secret, then generate the code with `otplib`:
-```ts
-import { authenticator } from 'otplib';
-const otp = authenticator.generate(process.env.OKTA_TOTP_SECRET!);
-await page.fill('input[name="credentials.totp"]', otp);
-await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
-```
-
----
-
-### Step 7 — Password screen
-
-```ts
-await page.waitForSelector('input[name="credentials.passcode"]', { timeout: 180_000 });
-await page.fill('input[name="credentials.passcode"]', TEST_USER_PASSWORD);
-await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
-```
-
-The 3-minute timeout here is the human-TOTP budget. This `waitForSelector` is what actually blocks while you type the OTP code and click Verify in the browser. Once Okta accepts the TOTP it transitions to the password screen, Playwright detects `input[name="credentials.passcode"]`, and the test continues automatically.
-
-**`credentials.passcode`** is Okta's field name for the password on the combined-auth screen (distinct from `credentials.totp` used for TOTP).
+If the scope-consent screen appears, the test verifies the Okta tenant, application name **My Web App X**, and the observed scope controls (`bar`, `foo`, and `email`). It leaves the checkbox selections unchanged without checking their selected state and clicks **Allow Access** automatically. If consent was already granted and Swagger UI opens directly, this branch is skipped. Unexpected application names or scope controls fail the test rather than being approved.
 
 ---
 

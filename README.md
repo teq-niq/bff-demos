@@ -339,14 +339,28 @@ This runs the simple form-login flow through Swagger UI and checks the authentic
 
 ### OIDC demo
 
+Prerequisite: complete the Okta app and user setup in okta-setup-for-oidc before running the OIDC demo.  
+
 ```bash
-mvn -pl oidc.bff verify -Pe2e -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET]
+mvn -pl oidc.bff verify -Pe2e -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-id=[CLIENT_ID] -Dokta.oauth2.client-secret=[CLIENT_SECRET] -Dokta.test.user.email=[TEST_USER_EMAIL] -Dokta.test.user.password=[TEST_USER_PASSWORD]
 ```
 
-This runs the Okta redirect flow. The TOTP step is manual in the current test, so you type the 6-digit code in the browser when prompted.
-Also note. Do not run this test before you have completed the Okta setup and done a first-time login in the Swagger UI flow or angular UI flow. 
-The test will fail if you have not done that. Our test assumes first time login has been done.  
-Might later enhance the oidc.bff E2E tests to also handle first time login in the future.  
+This runs the Okta redirect flow using **Okta Verify FastPass**. These test users no longer use TOTP; no 6-digit code is required.
+
+In the current Okta configuration observed for this demo's app users, **TOTP is no longer enabled by default; Okta Verify FastPass is active in addition to password authentication**. The E2E test follows that flow rather than configuring a custom authenticator: FastPass approval is manual, while password entry is automated. Other tenants or authentication policies may differ.
+
+When the action-required banner appears, <mark><strong>COMPLETE THE MANUAL INTERACTION</strong></mark>:
+
+1. Click **Allow** if the browser asks to access apps and services on this device.
+2. Click **Open Okta Verify** on the browser prompt.
+3. Check that the sign-in details match your request, then click **Yes, it's me** in the Windows Okta Verify app.
+
+The password screen appears afterward, and the test automatically fills and submits the configured test-user password. The remaining session checks, secured-endpoint checks, and logout are automated. Complete the FastPass interaction within the test's 150-second wait.
+
+See the [E2E walkthrough with screenshots](oidc.bff/swagger-bff-e2e/e2e.md#manual-interaction--screenshots-in-order).
+
+Complete the Okta setup, enroll the test user in Okta Verify on the Windows device, and perform a first-time login through Swagger UI or Angular before running this test. The test does not automate enrollment or first-time account setup.
+
 ## Notes
 
 - The Angular shell wrappers are only there to give you a controlled Node/npm environment.
@@ -392,6 +406,3 @@ The [troubleshooting notes](notes/troubleshooting.md) capture issues encountered
 ## About the Demo Code
 
 The novelty here is the [Swagger UI BFF extension](https://github.com/teq-niq/swagger-ui-bff). The two demo apps — one with Spring Security form login, one with Okta OIDC — are there to show it working in realistic scenarios. The server-side code is context for the extension.
-
-
-
