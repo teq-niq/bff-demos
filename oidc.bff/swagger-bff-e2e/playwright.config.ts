@@ -16,8 +16,6 @@ export default defineConfig({
     baseURL: process.env.SWAGGER_UI_URL ?? 'http://localhost:8081',
     // Keep browser open so you can see the Okta login screens
     headless: false,
-    // Retain trace on failure for debugging
-    trace: 'on-first-retry',
     // Allow navigation to external domains (Okta)
     navigationTimeout: 30_000,
     actionTimeout: 15_000,

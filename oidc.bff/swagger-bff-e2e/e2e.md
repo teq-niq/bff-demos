@@ -34,11 +34,6 @@ headless: false
 The browser must be visible so you can follow any Okta FastPass prompts. Approve the sign-in on the enrolled device when requested.
 
 ```ts
-trace: 'on-first-retry'
-```
-Records a Playwright trace (screenshots + DOM snapshots + network) on the first retry — useful for debugging failures without changing the test.
-
-```ts
 baseURL: process.env.SWAGGER_UI_URL ?? 'http://localhost:8081'
 ```
 `baseURL` makes relative paths like `/swagger-ui/index.html` work. The test overrides it with a full URL anyway (`page.goto(APP_URL)`), but it's good practice and is used by the `playwright test --ui` viewer.
@@ -138,6 +133,18 @@ await page.click('[data-se="o-form-input-submit"], input[type="submit"]');
 
 ### Step 5 — Select Okta Verify FastPass
 
+After username submission, the test waits for either the FastPass selection link or a password field. For the observed password-first route, it automatically fills the configured password and clicks **Verify**. If Okta then shows **Set up security methods**, the test displays a **SETUP REQUIRED** banner for 15 seconds and stops with an explicit enrollment-required error. It does not click **Set up** or attempt enrollment: setup opens another browser outside Playwright's control. Complete Okta Verify setup manually outside the test, then run the E2E command again. This setup-required run is not a completed E2E verification.
+
+#### User not yet set up in desktop Okta Verify
+
+If the test account has not been enrolled in desktop Okta Verify, the **Set up security methods** screen and yellow **SETUP REQUIRED** banner appear as shown below. This is as far as the automated test can go for an unenrolled account.
+
+![Unenrolled user shown the Okta Verify setup screen and SETUP REQUIRED banner](../../images/first-time-fast-pass1.png)
+
+Complete the setup steps manually outside the test, installing desktop Okta Verify if needed. Setup may launch another browser outside Playwright's control. Once enrollment is complete, **rerun the E2E command** to test the normal FastPass login flow. The initial setup-required run reports an error; it is not a successful E2E login/logout test.
+
+**First-login scope consent is handled automatically.** After setup, the first login may show a scope-selection screen. The test leaves the scope selections unchanged and clicks **Allow Access** for the expected application and scopes. After consent is granted, later logins do not show this screen unless re-consent is explicitly forced, and the test continues directly.
+
 ```ts
 const fastPassOption = page.getByRole('link', { name: 'Select Okta Verify.' });
 await expect(fastPassOption).toBeVisible({ timeout: 15_000 });
@@ -146,11 +153,9 @@ await fastPassOption.click();
 
 The currently observed Okta method screen offers Password and "Use Okta FastPass". Select the Okta Verify link by its accessible name.
 
-The test attaches the page DOM after selecting FastPass to its Playwright output under the ignored `test-results` directory. Review that artifact if Okta shows a new screen; the first-time setup and returning-user routes should be handled based on screens observed during actual runs.
-
 ### Step 6 — Approve FastPass
 
-Approve the request on the enrolled device if Okta prompts for it. The test waits for either the callback to Swagger UI or an Okta password field. If neither appears, Playwright's failure snapshot and attached DOM show the screen that needs handling next.
+Approve the request on the enrolled device if Okta prompts for it. The test waits for the callback to Swagger UI, an Okta password field, or the scope-consent screen. If none appears, the test times out.
 
 Before selecting FastPass, the test prints an ACTION REQUIRED banner in the terminal/Maven output. If Chrome asks for access to apps/services on the device, click **Allow**, then click **Open Okta Verify** on its application prompt. Complete any approval in the Windows Okta Verify app. These browser-native prompts are handled manually, not through page selectors. No TOTP code is needed.
 
@@ -181,6 +186,8 @@ await page.waitForFunction((appOrigin) => {
 ```
 
 If Okta requests the account password after FastPass approval, Playwright fills `input[name="credentials.passcode"]` and submits it. Otherwise it continues after returning to Swagger UI.
+
+If the scope-consent screen appears, the test verifies the Okta tenant, application name **My Web App X**, and the observed scope controls (`bar`, `foo`, and `email`). It leaves the checkbox selections unchanged without checking their selected state and clicks **Allow Access** automatically. If consent was already granted and Swagger UI opens directly, this branch is skipped. Unexpected application names or scope controls fail the test rather than being approved.
 
 ---
 

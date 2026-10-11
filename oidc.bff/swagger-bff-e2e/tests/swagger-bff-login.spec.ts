@@ -33,8 +33,24 @@
  *   npx playwright test --headed
  */
 
-import { test, expect } from '@playwright/test';
-import { writeFile } from 'node:fs/promises';
+import { test, expect, type Page } from '@playwright/test';
+
+async function showInstructionBanner(page: Page, message: string) {
+  await page.evaluate((text) => {
+    document.getElementById('e2e-fastpass-instructions')?.remove();
+    const banner = document.createElement('div');
+    banner.id = 'e2e-fastpass-instructions';
+    banner.setAttribute('role', 'status');
+    banner.textContent = text;
+    banner.style.cssText = [
+      'position:fixed', 'top:0', 'left:0', 'width:100%',
+      'padding:18px', 'background:#fff3cd', 'color:#332701',
+      'font-size:18px', 'font-weight:bold', 'z-index:99999', 'text-align:center',
+      'box-sizing:border-box', 'pointer-events:none',
+    ].join(';');
+    document.body.appendChild(banner);
+  }, message);
+}
 
 // ---------------------------------------------------------------------------
 // Credentials / config
@@ -58,7 +74,7 @@ if (!TEST_USER_EMAIL || !TEST_USER_PASSWORD || !OKTA_TENANT_ID) {
 // ---------------------------------------------------------------------------
 // Test
 // ---------------------------------------------------------------------------
-test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async ({ page }, testInfo) => {
+test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async ({ page }) => {
 
   // ------------------------------------------------------------------
   // 1. Open Swagger UI
@@ -90,6 +106,23 @@ test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async (
   // 5. Okta — select the FastPass option shown on the method screen.
   // ------------------------------------------------------------------
   const fastPassOption = page.getByRole('link', { name: 'Select Okta Verify.' });
+  const initialPassword = page.getByRole('textbox', { name: 'Password', exact: true });
+  await expect(fastPassOption.or(initialPassword).first()).toBeVisible({ timeout: 15_000 });
+  if (await initialPassword.isVisible()) {
+    await initialPassword.fill(TEST_USER_PASSWORD);
+    await page.getByRole('button', { name: 'Verify', exact: true }).click();
+  }
+  const setupOktaVerify = page.getByRole('link', { name: 'Set up Okta Verify.', exact: true });
+  await expect(fastPassOption.or(setupOktaVerify).first()).toBeVisible({ timeout: 15_000 });
+  if (await setupOktaVerify.isVisible()) {
+    await showInstructionBanner(page,
+      'TEST: SETUP REQUIRED - This is as far as the automated test can go. ' +
+      'Complete the setup steps manually, then rerun E2E. ' +
+      'Setup may open another browser outside Playwright control.');
+    console.log('SETUP REQUIRED: Complete Okta Verify setup manually outside Playwright, then rerun E2E.');
+    await page.waitForTimeout(15_000);
+    throw new Error('Okta Verify enrollment required. Complete setup manually outside Playwright, then rerun E2E.');
+  }
   await expect(fastPassOption).toBeVisible({ timeout: 15_000 });
   console.log([
     '',
@@ -103,35 +136,11 @@ test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async (
     '======================================================================',
     '',
   ].join('\n'));
-  await page.evaluate(() => {
-    const banner = document.createElement('div');
-    banner.id = 'e2e-fastpass-instructions';
-    banner.setAttribute('role', 'status');
-    banner.textContent =
+  await showInstructionBanner(page,
       'TEST: Action required - Click Allow if the browser asks to access apps/services, ' +
       'then click Open Okta Verify. Complete approval in the Windows Okta Verify app. ' +
-      'No TOTP code is needed. The test continues automatically; you have up to 150 seconds.';
-    banner.style.cssText = [
-      'position:fixed', 'top:0', 'left:0', 'width:100%',
-      'padding:18px', 'background:#fff3cd', 'color:#332701',
-      'font-size:18px', 'font-weight:bold', 'z-index:99999', 'text-align:center',
-      'box-sizing:border-box', 'pointer-events:none',
-    ].join(';');
-    document.body.appendChild(banner);
-  });
+      'No TOTP code is needed. The test continues automatically; you have up to 150 seconds.');
   await fastPassOption.click();
-
-  // ------------------------------------------------------------------
-  // Keep the post-selection Okta DOM with the test output so an unexpected
-  // first-time setup or returning-user screen can be inspected after the run.
-  // ------------------------------------------------------------------
-  await page.waitForTimeout(2_000);
-  const fastPassDomPath = testInfo.outputPath('okta-after-fastpass-selection.html');
-  await writeFile(fastPassDomPath, await page.content(), 'utf8');
-  await testInfo.attach('okta-after-fastpass-selection.html', {
-    path: fastPassDomPath,
-    contentType: 'text/html',
-  });
 
   // ------------------------------------------------------------------
   // 6. Wait for FastPass approval to return to Swagger or for Okta to
@@ -141,7 +150,8 @@ test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async (
     const app = new URL(appOrigin);
     const returnedToSwagger = location.origin === app.origin && location.pathname.includes('/swagger-ui');
     const passwordRequested = document.querySelector('input[name="credentials.passcode"]') !== null;
-    return returnedToSwagger || passwordRequested;
+    const consentRequested = document.querySelector('input[type="submit"][value="Allow Access"]') !== null;
+    return returnedToSwagger || passwordRequested || consentRequested;
   }, APP_ORIGIN, { timeout: 150_000 });
 
   if (await page.locator('input[name="credentials.passcode"]').isVisible()) {
@@ -153,7 +163,22 @@ test('Swagger UI BFF login — redirect flow with Okta Verify FastPass', async (
   // 8. Wait for redirect back to Swagger UI
   //    Spring Security redirects back to the same app origin after the OAuth2 callback.
   // ------------------------------------------------------------------
-  await page.waitForURL(new RegExp(`${APP_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*swagger-ui`), { timeout: 30_000 });
+  const swaggerUrl = new RegExp(`${APP_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*swagger-ui`);
+  const allowAccess = page.getByRole('button', { name: 'Allow Access', exact: true });
+  await expect.poll(async () =>
+    swaggerUrl.test(page.url()) || await allowAccess.isVisible(),
+  { timeout: 30_000 }).toBe(true);
+
+  if (await allowAccess.isVisible()) {
+    expect(new URL(page.url()).hostname).toBe(`${OKTA_TENANT_ID}.okta.com`);
+    await expect(page.getByText('My Web App X', { exact: true })).toBeVisible();
+    const scopes = page.locator('input[type="checkbox"][name^="optedScopes."]');
+    expect(await scopes.evaluateAll(inputs => inputs.map(input => input.getAttribute('name')).sort()))
+      .toEqual(['optedScopes.bar', 'optedScopes.email', 'optedScopes.foo']);
+    await showInstructionBanner(page, 'TEST: Approving the expected application scopes automatically.');
+    await allowAccess.click();
+  }
+  await page.waitForURL(swaggerUrl, { timeout: 30_000 });
 
   // ------------------------------------------------------------------
   // 9. Assertions
