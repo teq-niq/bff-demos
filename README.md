@@ -345,7 +345,7 @@ mvn -pl oidc.bff verify -Pe2e -Dokta.tenant.id=[TENANT_ID] -Dokta.oauth2.client-
 
 This runs the Okta redirect flow using **Okta Verify FastPass**. These test users no longer use TOTP; no 6-digit code is required.
 
-When the action-required banner appears, <mark>complete the manual interaction</mark>:
+When the action-required banner appears, <mark>**complete the manual interaction**</mark>:
 
 1. Click **Allow** if the browser asks to access apps and services on this device.
 2. Click **Open Okta Verify** on the browser prompt.
